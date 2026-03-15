@@ -1,0 +1,45 @@
+body{
+font-family:'Segoe UI', Arial, sans-serif;
+}
+
+/* topbar */
+
+.topbar{
+background:white;
+padding:15px;
+border-bottom:1px solid #e5e7eb;
+}
+
+/* cards */
+
+.card{
+background:white;
+height:120px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* tabla */
+
+.table-container{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th{
+background:#f9fafb;
+text-align:left;
+padding:12px;
+}
+
+td{
+padding:12px;
+border-top:1px solid #e5e7eb;
+}

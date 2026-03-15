@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+
+<meta charset="UTF-8">
+<title>Nómina</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/estilos.css">
+
+</head>
+
+<body class="bg-gray-100">
+
+<div class="flex h-screen">
+
+<div id="sidebar-container"></div>
+
+<main class="flex-1">
+
+<header class="bg-white p-4 border-b flex justify-between">
+
+<div>
+<h1 class="text-xl font-semibold">Gestión de Nómina</h1>
+<p class="text-gray-500 text-sm">Control y administración de pagos</p>
+</div>
+
+<div>
+<button class="bg-blue-600 text-white px-4 py-2 rounded">
+Generar Nueva Nómina
+</button>
+
+<button class="border px-3 py-2 rounded ml-2">
+Exportar
+</button>
+</div>
+
+</header>
+
+<section class="p-6">
+
+<div class="grid grid-cols-3 gap-6 mb-6">
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Total Nómina Mes</h3>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Pagos Pendientes</h3>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Empleados Pagados</h3>
+</div>
+
+</div>
+
+<div class="bg-white p-6 rounded shadow">
+
+<div class="flex justify-between mb-4">
+
+<h3 class="text-lg font-semibold">Pagos Recientes</h3>
+
+<div>
+<button class="border px-3 py-1 rounded">Filtrar</button>
+<button class="border px-3 py-1 rounded ml-2">Buscar</button>
+</div>
+
+</div>
+
+<table class="w-full">
+
+<thead class="bg-gray-100">
+
+<tr>
+<th class="p-3 text-left">Empleado</th>
+<th class="p-3 text-left">Departamento</th>
+<th class="p-3 text-left">Monto</th>
+<th class="p-3 text-left">Fecha</th>
+<th class="p-3 text-left">Estado</th>
+<th class="p-3 text-left">Acciones</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<tr class="border-t">
+<td class="p-3"></td>
+<td class="p-3"></td>
+<td class="p-3"></td>
+<td class="p-3"></td>
+<td class="p-3"></td>
+<td class="p-3">
+<button class="border px-2 py-1 rounded">Ver</button>
+<button class="border px-2 py-1 rounded ml-1">Editar</button>
+</td>
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="grid grid-cols-3 gap-6 mt-6">
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Promedio de Pago</h3>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Pagos Procesados</h3>
+</div>
+
+<div class="bg-white p-4 rounded shadow">
+<h3>Pagos Rechazados</h3>
+</div>
+
+</div>
+
+<div class="bg-yellow-100 p-6 rounded mt-6">
+
+<h3 class="font-semibold">Próximo cierre de nómina</h3>
+
+<p class="text-sm text-gray-600 mt-2"></p>
+
+<button class="bg-blue-600 text-white px-4 py-2 rounded mt-3">
+Revisar Alertas
+</button>
+
+</div>
+
+</section>
+
+</main>
+
+</div>
+
+<script src="js/menu.js"></script>
+
+</body>
+</html>
