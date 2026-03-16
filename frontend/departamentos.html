@@ -1,176 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8">
+  <title>Departamentos - Sistema RH</title>
 
-<meta charset="UTF-8">
-<title>Departamentos</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<link rel="stylesheet" href="css/estilos.css">
-
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/estilos.css">
 </head>
 
 <body class="bg-gray-100">
 
-<div class="flex h-screen">
+  <!-- Contenedor principal con sidebar dinámico -->
+  <div class="flex h-screen">
 
-<div id="sidebar-container"></div>
+    <!-- Sidebar cargado dinámicamente -->
+    <div id="sidebar-container"></div>
 
-<main class="flex-1">
+    <!-- Contenido principal -->
+    <main class="flex-1">
 
-<header class="bg-white p-4 border-b flex justify-between items-center">
+      <!-- Encabezado de la sección -->
+      <header class="bg-white p-4 border-b flex justify-between items-center">
+        <div>
+          <h1 class="text-xl font-semibold">Departamentos</h1>
+          <p class="text-gray-500 text-sm">Administración de áreas dentro de la empresa</p>
+        </div>
 
-<div>
-<h1 class="text-xl font-semibold">Departamentos</h1>
-<p class="text-gray-500 text-sm">Administración de áreas dentro de la empresa</p>
-</div>
+        <!-- Botón para agregar un nuevo departamento -->
+        <button class="bg-blue-600 text-white px-4 py-2 rounded">+ Añadir Departamento</button>
+      </header>
 
-<button class="bg-blue-600 text-white px-4 py-2 rounded">
-+ Añadir Departamento
-</button>
+      <section class="p-6">
 
-</header>
+        <!-- Buscador de departamentos -->
+        <input 
+          type="text"
+          placeholder="Buscar departamento..."
+          class="border p-2 rounded w-full mb-6"
+          id="buscarDepartamento"
+        >
 
+        <!-- Tarjetas de departamentos -->
+        <div class="grid grid-cols-4 gap-6 mb-8">
+          <!-- Cada tarjeta representa un departamento -->
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Tecnología</h3>
+            <div class="mt-4">
+              <button class="border px-2 py-1 rounded text-sm">Ver</button>
+              <button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
+            </div>
+          </div>
 
-<section class="p-6">
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Recursos Humanos</h3>
+            <div class="mt-4">
+              <button class="border px-2 py-1 rounded text-sm">Ver</button>
+              <button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
+            </div>
+          </div>
 
-<input 
-type="text"
-placeholder="Buscar departamento..."
-class="border p-2 rounded w-full mb-6"
->
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Marketing</h3>
+            <div class="mt-4">
+              <button class="border px-2 py-1 rounded text-sm">Ver</button>
+              <button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
+            </div>
+          </div>
 
+          <div class="bg-white p-4 rounded shadow">
+            <h3 class="font-semibold">Finanzas</h3>
+            <div class="mt-4">
+              <button class="border px-2 py-1 rounded text-sm">Ver</button>
+              <button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
+            </div>
+          </div>
+        </div>
 
-<!-- Tarjetas de departamentos -->
+        <!-- Tabla de departamentos -->
+        <div class="bg-white p-6 rounded shadow mb-8">
+          <div class="flex justify-between mb-4">
+            <h3 class="text-lg font-semibold">Lista de Departamentos</h3>
+            <div>
+              <button class="border px-3 py-1 rounded">Filtrar</button>
+              <button class="border px-3 py-1 rounded ml-2">Exportar</button>
+            </div>
+          </div>
 
-<div class="grid grid-cols-4 gap-6 mb-8">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="p-3 text-left">Departamento</th>
+                <th class="p-3 text-left">Responsable</th>
+                <th class="p-3 text-left">Empleados</th>
+                <th class="p-3 text-left">Estado</th>
+                <th class="p-3 text-left">Acciones</th>
+              </tr>
+            </thead>
 
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-semibold">Tecnología</h3>
+            <tbody id="tablaDepartamentos">
+              <!-- Backend insertará datos aquí -->
+              <tr class="border-t">
+                <td class="p-3"></td>
+                <td class="p-3"></td>
+                <td class="p-3"></td>
+                <td class="p-3"></td>
+                <td class="p-3"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-<div class="mt-4">
-<button class="border px-2 py-1 rounded text-sm">Ver</button>
-<button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
-</div>
-</div>
+        <!-- Estadísticas generales -->
+        <div class="grid grid-cols-3 gap-6">
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Total Departamentos</h3>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Departamentos Activos</h3>
+          </div>
+          <div class="bg-white p-4 rounded shadow">
+            <h3>Empleados por Área</h3>
+          </div>
+        </div>
 
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-semibold">Recursos Humanos</h3>
+      </section>
 
-<div class="mt-4">
-<button class="border px-2 py-1 rounded text-sm">Ver</button>
-<button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
-</div>
-</div>
+    </main>
+  </div>
 
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-semibold">Marketing</h3>
-
-<div class="mt-4">
-<button class="border px-2 py-1 rounded text-sm">Ver</button>
-<button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
-</div>
-</div>
-
-<div class="bg-white p-4 rounded shadow">
-<h3 class="font-semibold">Finanzas</h3>
-
-<div class="mt-4">
-<button class="border px-2 py-1 rounded text-sm">Ver</button>
-<button class="border px-2 py-1 rounded text-sm ml-2">Editar</button>
-</div>
-</div>
-
-</div>
-
-
-<!-- Tabla -->
-
-<div class="bg-white p-6 rounded shadow mb-8">
-
-<div class="flex justify-between mb-4">
-
-<h3 class="text-lg font-semibold">Lista de Departamentos</h3>
-
-<div>
-<button class="border px-3 py-1 rounded">Filtrar</button>
-<button class="border px-3 py-1 rounded ml-2">Exportar</button>
-</div>
-
-</div>
-
-<table class="w-full">
-
-<thead class="bg-gray-100">
-
-<tr>
-<th class="p-3 text-left">Departamento</th>
-<th class="p-3 text-left">Responsable</th>
-<th class="p-3 text-left">Empleados</th>
-<th class="p-3 text-left">Estado</th>
-<th class="p-3 text-left">Acciones</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-<tr class="border-t">
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-</tr>
-
-<tr class="border-t">
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-</tr>
-
-<tr class="border-t">
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-<td class="p-3"></td>
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-
-<!-- Estadísticas -->
-
-<div class="grid grid-cols-3 gap-6">
-
-<div class="bg-white p-4 rounded shadow">
-<h3>Total Departamentos</h3>
-</div>
-
-<div class="bg-white p-4 rounded shadow">
-<h3>Departamentos Activos</h3>
-</div>
-
-<div class="bg-white p-4 rounded shadow">
-<h3>Empleados por Área</h3>
-</div>
-
-</div>
-
-</section>
-
-</main>
-
-</div>
-
-<script src="js/menu.js"></script>
+  <!-- Scripts -->
+  <script src="js/menu.js"></script>
 
 </body>
 </html>

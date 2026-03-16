@@ -1,92 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <meta charset="UTF-8">
+  <title>Login - Sistema RH</title>
 
-<meta charset="UTF-8">
-<title>Login - Sistema RH</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center">
 
-<div class="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-10 w-96">
+  <!-- Contenedor del login con fondo semitransparente y blur -->
+  <div class="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-10 w-96">
 
-<div class="text-center mb-8">
+    <!-- Encabezado -->
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800">Sistema RH</h1>
+      <p class="text-gray-500 text-sm">Panel de administración</p>
+    </div>
 
-<h1 class="text-3xl font-bold text-gray-800">
-Sistema RH
-</h1>
+    <!-- Formulario de login -->
+    <form id="loginForm">
 
-<p class="text-gray-500 text-sm">
-Panel de administración
-</p>
+      <!-- Campo correo electrónico -->
+      <div class="mb-5">
+        <label class="text-sm font-semibold text-gray-600">Correo electrónico</label>
+        <input
+          type="email"
+          placeholder="usuario@empresa.com"
+          class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+        >
+      </div>
 
-</div>
+      <!-- Campo contraseña -->
+      <div class="mb-6">
+        <label class="text-sm font-semibold text-gray-600">Contraseña</label>
+        <input
+          type="password"
+          placeholder="********"
+          class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
+        >
+      </div>
 
-<form id="loginForm">
+      <!-- Botón de ingresar -->
+      <button
+        type="submit"
+        class="w-full bg-orange-500 text-white p-3 rounded-lg font-semibold hover:bg-orange-600 transition"
+      >
+        Ingresar
+      </button>
 
-<div class="mb-5">
+    </form>
 
-<label class="text-sm font-semibold text-gray-600">
-Correo electrónico
-</label>
+    <!-- Enlace de recuperación de contraseña -->
+    <div class="mt-6 text-center text-sm text-gray-500">
+      ¿Olvidaste tu contraseña?
+    </div>
 
-<input
-type="email"
-placeholder="usuario@empresa.com"
-class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
->
+  </div>
 
-</div>
-
-
-<div class="mb-6">
-
-<label class="text-sm font-semibold text-gray-600">
-Contraseña
-</label>
-
-<input
-type="password"
-placeholder="********"
-class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
->
-
-</div>
-
-
-<button
-type="submit"
-class="w-full bg-orange-500 text-white p-3 rounded-lg font-semibold hover:bg-orange-600 transition"
->
-
-Ingresar
-
-</button>
-
-</form>
-
-
-<div class="mt-6 text-center text-sm text-gray-500">
-
-¿Olvidaste tu contraseña?
-
-</div>
-
-</div>
-
-<script>
-
-document.getElementById("loginForm").addEventListener("submit", function(e){
-
-e.preventDefault()
-window.location.href="index.html"
-
-})
-
-</script>
+  <!-- Script de envío de formulario -->
+  <script>
+    // Evita que el formulario recargue la página
+    // Redirige al dashboard (index.html) al hacer submit
+    document.getElementById("loginForm").addEventListener("submit", function(e){
+      e.preventDefault();
+      // Aquí luego se puede integrar autenticación real con backend
+      window.location.href = "index.html";
+    });
+  </script>
 
 </body>
 </html>
