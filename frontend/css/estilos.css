@@ -1,45 +1,57 @@
-body{
-font-family:'Segoe UI', Arial, sans-serif;
+/* ==========================================
+   Fuente principal del sistema
+   ========================================== */
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* topbar */
-
-.topbar{
-background:white;
-padding:15px;
-border-bottom:1px solid #e5e7eb;
+/* ==========================================
+   Topbar: barra superior
+   ========================================== */
+.topbar {
+    background: white;
+    padding: 15px;
+    border-bottom: 1px solid #e5e7eb; /* línea sutil para separar del contenido */
 }
 
-/* cards */
-
-.card{
-background:white;
-height:120px;
-border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.08);
+/* ==========================================
+   Cards: secciones de métricas o resúmenes
+   ========================================== */
+.card {
+    background: white;
+    height: 120px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* sombra ligera para profundidad */
+    padding: 16px; /* opcional: agrega espacio interno */
 }
 
-/* tabla */
-
-.table-container{
-background:white;
-padding:20px;
-border-radius:10px;
-box-shadow:0 2px 8px rgba(0,0,0,0.08);
+/* ==========================================
+   Contenedores de tablas
+   ========================================== */
+.table-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08); /* sombra ligera */
 }
 
-table{
-width:100%;
-border-collapse:collapse;
+/* ==========================================
+   Tablas
+   ========================================== */
+table {
+    width: 100%;
+    border-collapse: collapse; /* elimina espacios entre celdas */
 }
 
-th{
-background:#f9fafb;
-text-align:left;
-padding:12px;
+/* Cabeceras de tabla */
+th {
+    background: #f9fafb; /* gris claro */
+    text-align: left;
+    padding: 12px;
 }
 
-td{
-padding:12px;
-border-top:1px solid #e5e7eb;
+/* Celdas de tabla */
+td {
+    padding: 12px;
+    border-top: 1px solid #e5e7eb; /* línea divisoria horizontal */
 }
