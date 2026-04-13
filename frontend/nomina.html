@@ -4,114 +4,99 @@
   <meta charset="UTF-8">
   <title>Nómina - Sistema RH</title>
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/estilos.css">
 </head>
 
 <body class="bg-gray-100">
 
-  <!-- Contenedor principal con sidebar dinámico -->
   <div class="flex h-screen">
 
-    <!-- Sidebar cargado con fetch -->
     <div id="sidebar-container"></div>
 
-    <!-- Contenido principal -->
-    <main class="flex-1">
+    <main class="flex-1 overflow-y-auto">
 
-      <!-- Header de la página de Nómina -->
       <header class="bg-white p-4 border-b flex justify-between items-center">
-        <!-- Título y subtítulo -->
         <div>
           <h1 class="text-xl font-semibold">Gestión de Nómina</h1>
           <p class="text-gray-500 text-sm">Control y administración de pagos</p>
         </div>
 
-        <!-- Botones de acción -->
         <div>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded">
+          <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Generar Nueva Nómina
           </button>
-          <button class="border px-3 py-2 rounded ml-2">
+          <button class="border px-3 py-2 rounded ml-2 hover:bg-gray-50">
             Exportar
           </button>
         </div>
       </header>
 
-      <!-- Sección principal -->
       <section class="p-6">
 
-        <!-- Métricas rápidas -->
         <div class="grid grid-cols-3 gap-6 mb-6">
-          <div class="bg-white p-4 rounded shadow">
-            <h3>Total Nómina Mes</h3>
+          <div class="bg-white p-4 rounded shadow border-l-4 border-blue-500">
+            <h3 class="text-gray-500 text-sm">Total Nómina Mes</h3>
+            <p id="totalNominaMes" class="text-2xl font-bold mt-2">$0</p>
           </div>
-          <div class="bg-white p-4 rounded shadow">
-            <h3>Pagos Pendientes</h3>
+          <div class="bg-white p-4 rounded shadow border-l-4 border-yellow-500">
+            <h3 class="text-gray-500 text-sm">Pagos Pendientes</h3>
+            <p id="pagosPendientes" class="text-2xl font-bold mt-2">0</p>
           </div>
-          <div class="bg-white p-4 rounded shadow">
-            <h3>Empleados Pagados</h3>
+          <div class="bg-white p-4 rounded shadow border-l-4 border-green-500">
+            <h3 class="text-gray-500 text-sm">Empleados Pagados</h3>
+            <p id="empleadosPagados" class="text-2xl font-bold mt-2">0</p>
           </div>
         </div>
 
-        <!-- Tabla de pagos recientes -->
         <div class="bg-white p-6 rounded shadow">
           <div class="flex justify-between mb-4">
             <h3 class="text-lg font-semibold">Pagos Recientes</h3>
             <div>
-              <button class="border px-3 py-1 rounded">Filtrar</button>
-              <button class="border px-3 py-1 rounded ml-2">Buscar</button>
+              <button class="border px-3 py-1 rounded hover:bg-gray-50">Filtrar</button>
+              <button class="border px-3 py-1 rounded ml-2 hover:bg-gray-50">Buscar</button>
             </div>
           </div>
 
-          <table class="w-full">
-            <thead class="bg-gray-100">
+          <table class="w-full text-left">
+            <thead class="bg-gray-100 border-b">
               <tr>
-                <th class="p-3 text-left">Empleado</th>
-                <th class="p-3 text-left">Departamento</th>
-                <th class="p-3 text-left">Monto</th>
-                <th class="p-3 text-left">Fecha</th>
-                <th class="p-3 text-left">Estado</th>
-                <th class="p-3 text-left">Acciones</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Empleado</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Departamento</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Monto</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Fecha</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Estado</th>
+                <th class="p-3 text-sm font-semibold text-gray-600 uppercase">Acciones</th>
               </tr>
             </thead>
 
-            <tbody>
-              <!-- Placeholder: datos serán llenados desde backend -->
+            <tbody id="tablaNomina">
               <tr class="border-t">
-                <td class="p-3"></td>
-                <td class="p-3"></td>
-                <td class="p-3"></td>
-                <td class="p-3"></td>
-                <td class="p-3"></td>
-                <td class="p-3">
-                  <button class="border px-2 py-1 rounded">Ver</button>
-                  <button class="border px-2 py-1 rounded ml-1">Editar</button>
-                </td>
+                <td colspan="6" class="p-6 text-center text-gray-400 italic">Cargando registros de nómina...</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <!-- Métricas adicionales -->
         <div class="grid grid-cols-3 gap-6 mt-6">
           <div class="bg-white p-4 rounded shadow">
-            <h3>Promedio de Pago</h3>
+            <h3 class="text-gray-500 text-sm">Promedio de Pago</h3>
+            <p id="promedioPago" class="text-xl font-semibold mt-2">$0</p>
           </div>
           <div class="bg-white p-4 rounded shadow">
-            <h3>Pagos Procesados</h3>
+            <h3 class="text-gray-500 text-sm">Pagos Procesados</h3>
+            <p class="text-xl font-semibold mt-2">--</p>
           </div>
           <div class="bg-white p-4 rounded shadow">
-            <h3>Pagos Rechazados</h3>
+            <h3 class="text-gray-500 text-sm">Pagos Rechazados</h3>
+            <p id="pagosRechazados" class="text-xl font-semibold mt-2">0</p>
           </div>
         </div>
 
-        <!-- Alertas importantes -->
-        <div class="bg-yellow-100 p-6 rounded mt-6">
-          <h3 class="font-semibold">Próximo cierre de nómina</h3>
-          <p class="text-sm text-gray-600 mt-2"></p>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded mt-3">
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded mt-6">
+          <h3 class="font-semibold text-yellow-800">Próximo cierre de nómina</h3>
+          <p class="text-sm text-yellow-700 mt-2 text-gray-600">Quedan 3 días para validar los pagos del periodo actual.</p>
+          <button class="bg-blue-600 text-white px-4 py-2 rounded mt-3 hover:bg-blue-700">
             Revisar Alertas
           </button>
         </div>
@@ -120,8 +105,8 @@
     </main>
   </div>
 
-  <!-- Script para cargar sidebar dinámico -->
   <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
 
 </body>
 </html>
