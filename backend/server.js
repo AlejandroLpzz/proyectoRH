@@ -29,7 +29,36 @@ app.get('/api/empleados', async (req, res) => {
         res.status(500).json({ mensaje: "Error al obtener empleados", error });
     }
 });
+// --- RUTA PARA CREAR UN EMPLEADO NUEVO ---
+app.post('/api/empleados', async (req, res) => {
+    try {
+        const nuevoEmpleado = new Empleado(req.body);
+        await nuevoEmpleado.save();
+        res.status(201).json(nuevoEmpleado);
+    } catch (error) {
+        console.error("Error al guardar:", error);
+        res.status(400).json({ mensaje: "Error al registrar empleado", detalle: error.message });
+    }
+});
+// --- ELIMINAR EMPLEADO ---
+app.delete('/api/empleados/:id', async (req, res) => {
+    try {
+        await Empleado.findByIdAndDelete(req.params.id);
+        res.json({ mensaje: "Empleado eliminado correctamente" });
+    } catch (error) {
+        res.status(500).json({ mensaje: "Error al eliminar" });
+    }
+});
 
+// --- EDITAR EMPLEADO ---
+app.put('/api/empleados/:id', async (req, res) => {
+    try {
+        const actualizado = await Empleado.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        res.json(actualizado);
+    } catch (error) {
+        res.status(500).json({ mensaje: "Error al actualizar" });
+    }
+});
 // --- RUTAS DE DEPARTAMENTOS ---
 app.get('/api/departamentos', async (req, res) => {
     try {
