@@ -1,12 +1,30 @@
 // 1. Configuración Inicial y Variable Global
 const API_BASE = "http://localhost:3000/api";
-let idEditando = null; // Mantenemos el rastro de si estamos editando o creando
+let idEditando = null; 
+let idDeptoEditando = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     if (document.getElementById("tablaEmpleados")) cargarEmpleados();
     if (document.getElementById("tablaDepartamentos")) cargarDepartamentos();
     if (document.getElementById("tablaNomina")) cargarNomina();
     if (document.getElementById("totalEmpleados")) cargarMetricasDashboard();
+    
+    // Inicializar el botón de Nuevo Empleado
+    const btnNuevo = document.getElementById("btnNuevoEmpleado");
+    if (btnNuevo) {
+        btnNuevo.onclick = () => {
+            idEditando = null;
+            const modal = document.getElementById("modalEmpleado");
+            if(modal) {
+                // Limpiar campos antes de abrir
+                document.getElementById("nombre").value = "";
+                document.getElementById("departamento").value = "";
+                document.getElementById("rol").value = "";
+                document.getElementById("guardarEmpleado").innerText = "Guardar";
+                modal.style.display = "block";
+            }
+        };
+    }
 });
 
 // --- FUNCIÓN: CARGAR EMPLEADOS ---
@@ -34,7 +52,18 @@ async function cargarEmpleados() {
                     </td>
                 </tr>`;
         });
+
+        // Actualizar métricas en las tarjetas
         if(document.getElementById("totalEmpleados")) document.getElementById("totalEmpleados").innerText = datos.length;
+        if(document.getElementById("empleadosActivos")) {
+            const activos = datos.filter(e => e.estado === 'Activo' || !e.estado).length;
+            document.getElementById("empleadosActivos").innerText = activos;
+        }
+        if(document.getElementById("empleadosInactivos")) {
+            const inactivos = datos.filter(e => e.estado === 'Inactivo').length;
+            document.getElementById("empleadosInactivos").innerText = inactivos;
+        }
+
     } catch (e) { console.error("Error al cargar empleados:", e); }
 }
 
@@ -44,12 +73,11 @@ async function eliminarEmpleado(id) {
         try {
             const res = await fetch(`${API_BASE}/empleados/${id}`, { method: 'DELETE' });
             if (res.ok) {
-                alert("Empleado eliminado con éxito");
+                alert("✅ Empleado eliminado con éxito");
                 cargarEmpleados();
             }
         } catch (error) {
             console.error("Error al eliminar:", error);
-            alert("Hubo un error al intentar eliminar");
         }
     }
 }
@@ -61,14 +89,15 @@ function prepararEdicion(id, nombre, depto, rol) {
     document.getElementById("departamento").value = depto;
     document.getElementById("rol").value = rol;
     
-    document.getElementById("guardarEmpleado").innerText = "Actualizar Cambios";
-    document.getElementById("modalEmpleado").style.display = "block";
+    const btnGuardar = document.getElementById("guardarEmpleado");
+    if(btnGuardar) btnGuardar.innerText = "Actualizar Cambios";
+    
+    const modal = document.getElementById("modalEmpleado");
+    if(modal) modal.style.display = "block";
 }
 
 // --- LÓGICA DEL BOTÓN GUARDAR (POST y PUT) ---
 const btnGuardar = document.getElementById("guardarEmpleado");
-const modal = document.getElementById("modalEmpleado");
-
 if(btnGuardar) {
     btnGuardar.onclick = async () => {
         const nombre = document.getElementById("nombre").value;
@@ -97,14 +126,8 @@ if(btnGuardar) {
             if (res.ok) {
                 alert(idEditando ? "✅ Empleado actualizado" : "✅ Empleado guardado");
                 idEditando = null;
-                btnGuardar.innerText = "Guardar";
-                modal.style.display = "none";
-                
-                // Limpiar campos
-                document.getElementById("nombre").value = "";
-                document.getElementById("departamento").value = "";
-                document.getElementById("rol").value = "";
-                
+                const modal = document.getElementById("modalEmpleado");
+                if(modal) modal.style.display = "none";
                 cargarEmpleados();
             }
         } catch (error) {
@@ -113,12 +136,76 @@ if(btnGuardar) {
     };
 }
 
-// --- EXPONER FUNCIONES AL NAVEGADOR ---
-// Esto permite que el onclick="eliminarEmpleado(...)" del HTML funcione
-window.eliminarEmpleado = eliminarEmpleado;
-window.prepararEdicion = prepararEdicion;
+// --- CARGAR DEPARTAMENTOS ---
+async function cargarDepartamentos() {
+    const tabla = document.getElementById("tablaDepartamentos");
+    if (!tabla) return;
 
-// --- OTRAS FUNCIONES (Dashboard, Nómina, Buscador) ---
+    try {
+        const res = await fetch(`${API_BASE}/departamentos`);
+        const datos = await res.json();
+
+        tabla.innerHTML = "";
+        datos.forEach(dep => {
+            tabla.innerHTML += `
+                <tr class="border-t">
+                    <td class="p-3 font-semibold">${dep.nombre}</td>
+                    <td class="p-3">${dep.responsable || 'Sin asignar'}</td>
+                    <td class="p-3 text-center">${dep.numEmpleados || 0}</td>
+                    <td class="p-3">
+                        <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs">${dep.estado || 'Activo'}</span>
+                    </td>
+                    <td class="p-3 text-right">
+                        <button onclick="prepararEdicionDepto('${dep._id}', '${dep.nombre}', '${dep.responsable}')" class="text-blue-600 mr-2">Editar</button>
+                        <button onclick="eliminarDepartamento('${dep._id}')" class="text-red-600">Eliminar</button>
+                    </td>
+                </tr>`;
+        });
+
+        if(document.getElementById("totalDeptos")) document.getElementById("totalDeptos").innerText = datos.length;
+        if(document.getElementById("departamentosActivos")) document.getElementById("departamentosActivos").innerText = datos.filter(d => d.estado === 'Activo').length;
+        
+    } catch (e) { console.error("Error al cargar departamentos:", e); }
+}
+
+// --- CARGAR NÓMINA ---
+async function cargarNomina() {
+    const tabla = document.getElementById("tablaNomina");
+    if (!tabla) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/nomina`);
+        const datos = await res.json();
+
+        tabla.innerHTML = "";
+        let sumaTotal = 0;
+
+        datos.forEach(pago => {
+            sumaTotal += pago.monto;
+            const fechaFormateada = new Date(pago.fecha).toLocaleDateString();
+            
+            tabla.innerHTML += `
+                <tr class="border-t">
+                    <td class="p-3">${pago.empleado}</td>
+                    <td class="p-3">${pago.departamento}</td>
+                    <td class="p-3 font-bold text-green-600">$${pago.monto.toLocaleString()}</td>
+                    <td class="p-3">${fechaFormateada}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-1 rounded-full text-xs ${pago.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
+                            ${pago.estado}
+                        </span>
+                    </td>
+                    <td class="p-3 text-blue-600 cursor-pointer">Ver recibo</td>
+                </tr>`;
+        });
+
+        if(document.getElementById("totalNominaMes")) {
+            document.getElementById("totalNominaMes").innerText = `$${sumaTotal.toLocaleString()}`;
+        }
+    } catch (e) { console.error("Error al cargar nómina:", e); }
+}
+
+// --- MÉTRICAS DASHBOARD ---
 async function cargarMetricasDashboard() {
     try {
         const [resEmp, resDep] = await Promise.all([
@@ -133,6 +220,7 @@ async function cargarMetricasDashboard() {
     } catch (e) { console.error("Error en métricas:", e); }
 }
 
+// --- BUSCADOR ---
 const inputBuscar = document.getElementById("buscarEmpleado");
 if(inputBuscar) {
     inputBuscar.addEventListener("input", (e) => {
@@ -144,17 +232,63 @@ if(inputBuscar) {
         });
     });
 }
+// ---  EDICIÓN DEPARTAMENTO ---
+// 1. Lógica para abrir modal de departamento
+const btnNuevoDepto = document.getElementById("btnNuevoDepto");
+if (btnNuevoDepto) {
+    btnNuevoDepto.onclick = () => {
+        idDeptoEditando = null;
+        document.getElementById("nombreDepto").value = "";
+        document.getElementById("responsableDepto").value = "";
+        document.getElementById("modalDepto").style.display = "block";
+    };
+}
 
-// Las funciones de Departamento y Nómina se quedan igual...
-async function cargarDepartamentos() { /* Tu código actual */ }
-async function cargarNomina() { /* Tu código actual */ }
+// 2. Función para GUARDAR / EDITAR Departamento
+const btnGuardarDepto = document.getElementById("guardarDepto");
+if (btnGuardarDepto) {
+    btnGuardarDepto.onclick = async () => {
+        const nombre = document.getElementById("nombreDepto").value;
+        const responsable = document.getElementById("responsableDepto").value;
+        const estado = document.getElementById("estadoDepto").value;
 
-// --- BOTÓN CERRAR MODAL (Opcional pero recomendado) ---
-// Si haces clic fuera del modal o añades un botón cancelar, limpia el idEditando
+        const datos = { nombre, responsable, estado };
+        let url = `${API_BASE}/departamentos`;
+        let metodo = idDeptoEditando ? 'PUT' : 'POST';
+        if (idDeptoEditando) url += `/${idDeptoEditando}`;
+
+        try {
+            const res = await fetch(url, {
+                method: metodo,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+            if (res.ok) {
+                document.getElementById("modalDepto").style.display = "none";
+                cargarDepartamentos(); // Recargar la tabla
+                alert("Operación exitosa");
+            }
+        } catch (e) { alert("Error al guardar"); }
+    };
+}
+
+// 3. Función para ELIMINAR Departamento
+async function eliminarDepartamento(id) {
+    if (confirm("¿Eliminar este departamento?")) {
+        await fetch(`${API_BASE}/departamentos/${id}`, { method: 'DELETE' });
+        cargarDepartamentos();
+    }
+}
+
+// --- EXPOSICIÓN GLOBAL Y CERRAR MODAL ---
+window.eliminarEmpleado = eliminarEmpleado;
+window.prepararEdicion = prepararEdicion;
+window.eliminarDepartamento = eliminarDepartamento;
+
 window.onclick = function(event) {
+    const modal = document.getElementById("modalEmpleado");
     if (event.target == modal) {
         modal.style.display = "none";
         idEditando = null;
-        if(btnGuardar) btnGuardar.innerText = "Guardar";
     }
 }
