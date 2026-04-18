@@ -23,7 +23,7 @@
         </div>
 
         <div>
-          <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button onclick="prepararNuevaNomina()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
             Generar Nueva Nómina
           </button>
           <button class="border px-3 py-2 rounded ml-2 hover:bg-gray-50">
@@ -32,6 +32,31 @@
         </div>
       </header>
 
+    <div id="modalNomina" style="display:none;" class="fixed inset-0 bg-black bg-opacity-50 items-center justify-center z-50">
+      <div class="bg-white p-6 rounded-lg shadow-xl w-96">
+        <h2 class="text-lg font-bold mb-4">Registrar Pago de Nómina</h2>
+    
+        <label class="block text-sm font-medium text-gray-700">Empleado</label>
+        <input id="nomEmpleado" placeholder="Nombre del empleado" class="border w-full p-2 mb-3 rounded outline-none focus:ring-2 focus:ring-blue-400">
+    
+        <label class="block text-sm font-medium text-gray-700">Departamento</label>
+        <input id="nomDepartamento" placeholder="Ej: Ventas" class="border w-full p-2 mb-3 rounded outline-none focus:ring-2 focus:ring-blue-400">
+    
+        <label class="block text-sm font-medium text-gray-700">Monto ($)</label>
+        <input id="nomMonto" type="number" placeholder="Ej: 5000" class="border w-full p-2 mb-3 rounded outline-none focus:ring-2 focus:ring-blue-400">
+    
+        <label class="block text-sm font-medium text-gray-700">Estado</label>
+        <select id="nomEstado" class="border w-full p-2 mb-4 rounded outline-none focus:ring-2 focus:ring-blue-400">
+          <option value="Pagado">Pagado</option>
+          <option value="Pendiente">Pendiente</option>
+        </select>
+    
+        <div class="flex justify-end gap-2">
+          <button onclick="document.getElementById('modalNomina').style.display='none'" class="px-4 py-2 text-gray-500 hover:text-gray-700">Cancelar</button>
+          <button id="guardarNomina" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Guardar Pago</button>
+        </div>
+      </div>
+    </div>
       <section class="p-6">
 
         <div class="grid grid-cols-3 gap-6 mb-6">
