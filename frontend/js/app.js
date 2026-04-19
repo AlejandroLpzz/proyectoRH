@@ -1,164 +1,215 @@
-// 1. Configuración Inicial y Variable Global
+// ==========================================
+// 1. CONFIGURACIÓN INICIAL Y GLOBALES
+// ==========================================
 const API_BASE = "http://localhost:3000/api";
 let idEditando = null;
 let idDeptoEditando = null;
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (document.getElementById("tablaEmpleados")) cargarEmpleados();
-    if (document.getElementById("tablaDepartamentos")) cargarDepartamentos();
-    if (document.getElementById("tablaNomina")) cargarNomina();
-    if (document.getElementById("totalEmpleados")) cargarMetricasDashboard();
+  // Carga de tablas
+  if (document.getElementById("tablaEmpleados")) cargarEmpleados();
+  if (document.getElementById("tablaDepartamentos")) cargarDepartamentos();
+  if (document.getElementById("tablaNomina")) cargarNomina();
 
-    // Inicializar el botón de Nuevo Empleado
-    const btnNuevo = document.getElementById("btnNuevoEmpleado");
-    if (btnNuevo) {
-        btnNuevo.onclick = () => {
-            idEditando = null;
-            const modal = document.getElementById("modalEmpleado");
-            if (modal) {
-                // Limpiar campos antes de abrir
-                document.getElementById("nombre").value = "";
-                document.getElementById("departamento").value = "";
-                document.getElementById("rol").value = "";
-                document.getElementById("guardarEmpleado").innerText = "Guardar";
-                modal.style.display = "block";
-            }
-        };
-    }
+  // Carga del Dashboard (Verifica por el ID que tienes en tu index.html)
+  if (document.getElementById("totalEmpleados") || document.querySelector(".Dashboard")) {
+    cargarMetricasDashboard();
+  }
 });
 
-// --- FUNCIÓN: CARGAR EMPLEADOS ---
+// FUNCIÓN PARA RELLENAR EL SELECTOR DE DEPARTAMENTOS
+async function actualizarSelectDepartamentos() {
+  const select = document.getElementById("departamento");
+  if (!select) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/departamentos`);
+    const deptos = await res.json();
+    // Solo mostramos los departamentos activos para nuevos empleados
+    select.innerHTML = deptos
+      .filter((d) => d.estado !== "Inactivo")
+      .map((d) => `<option value="${d.nombre}">${d.nombre}</option>`)
+      .join("");
+  } catch (e) {
+    console.error("Error al llenar departamentos", e);
+  }
+}
+
+// Inicializar el botón de Nuevo Empleado (CORREGIDO)
+const btnNuevo = document.getElementById("btnNuevoEmpleado");
+if (btnNuevo) {
+  btnNuevo.onclick = async () => {
+    idEditando = null;
+    const modal = document.getElementById("modalEmpleado");
+    if (modal) {
+      document.getElementById("nombre").value = "";
+      document.getElementById("rol").value = "";
+      document.getElementById("guardarEmpleado").innerText = "Guardar Empleado";
+
+      // IMPORTANTE: Llenamos el select antes de mostrar el modal
+      await actualizarSelectDepartamentos();
+
+      modal.style.display = "flex";
+    }
+  };
+}
+
+// ==========================================
+// 2. MÓDULO: EMPLEADOS
+// ==========================================
+
 async function cargarEmpleados() {
-    const tabla = document.getElementById("tablaEmpleados");
-    if (!tabla) return;
+  const tabla = document.getElementById("tablaEmpleados");
+  if (!tabla) return;
 
-    try {
-        const res = await fetch(`${API_BASE}/empleados`);
-        const datos = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/empleados`);
+    const datos = await res.json();
 
-        tabla.innerHTML = "";
-        datos.forEach(emp => {
-            tabla.innerHTML += `
-                <tr class="border-t">
+    tabla.innerHTML = "";
+    datos.forEach((emp) => {
+      tabla.innerHTML += `
+                <tr class="border-t hover:bg-gray-50 transition">
                     <td class="p-3">${emp.nombre}</td>
                     <td class="p-3">${emp.departamento}</td>
                     <td class="p-3">${emp.rol}</td>
                     <td class="p-3">
-                        <span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs">${emp.estado || 'Activo'}</span>
+                        <span class="${emp.estado === "Inactivo" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"} px-2 py-1 rounded-full text-xs font-semibold">
+                            ${emp.estado || "Activo"}
+                        </span>
                     </td>
-                    <td class="p-3 flex gap-2">
-                        <button onclick="prepararEdicion('${emp._id}', '${emp.nombre}', '${emp.departamento}', '${emp.rol}')" class="text-blue-600 hover:underline">Editar</button>
-                        <button onclick="eliminarEmpleado('${emp._id}')" class="text-red-600 hover:underline">Eliminar</button>
+                    <td class="p-3 text-right">
+                        <button onclick="prepararEdicion('${emp._id}', '${emp.nombre}', '${emp.departamento}', '${emp.rol}')" class="text-blue-600 hover:underline mr-3 font-medium">Editar</button>
+                        <button onclick="eliminarEmpleado('${emp._id}')" class="text-red-600 hover:underline font-medium">Eliminar</button>
                     </td>
                 </tr>`;
-        });
+    });
 
-        // Actualizar métricas en las tarjetas
-        if (document.getElementById("totalEmpleados")) document.getElementById("totalEmpleados").innerText = datos.length;
-        if (document.getElementById("empleadosActivos")) {
-            const activos = datos.filter(e => e.estado === 'Activo' || !e.estado).length;
-            document.getElementById("empleadosActivos").innerText = activos;
-        }
-        if (document.getElementById("empleadosInactivos")) {
-            const inactivos = datos.filter(e => e.estado === 'Inactivo').length;
-            document.getElementById("empleadosInactivos").innerText = inactivos;
-        }
-
-    } catch (e) { console.error("Error al cargar empleados:", e); }
-}
-
-// --- FUNCIÓN: ELIMINAR EMPLEADO ---
-async function eliminarEmpleado(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar a este empleado?")) {
-        try {
-            const res = await fetch(`${API_BASE}/empleados/${id}`, { method: 'DELETE' });
-            if (res.ok) {
-                alert("Empleado eliminado con éxito");
-                cargarEmpleados();
-            }
-        } catch (error) {
-            console.error("Error al eliminar:", error);
-        }
+    // Actualizar métricas superiores si existen
+    if (document.getElementById("totalEmpleados"))
+      document.getElementById("totalEmpleados").innerText = datos.length;
+    if (document.getElementById("empleadosActivos")) {
+      const activos = datos.filter((e) => e.estado !== "Inactivo").length;
+      document.getElementById("empleadosActivos").innerText = activos;
     }
+    if (document.getElementById("empleadosInactivos")) {
+      const inactivos = datos.filter((e) => e.estado === "Inactivo").length;
+      document.getElementById("empleadosInactivos").innerText = inactivos;
+    }
+  } catch (e) {
+    console.error("Error al cargar empleados:", e);
+  }
 }
 
-// --- FUNCIÓN: PREPARAR EDICIÓN ---
-function prepararEdicion(id, nombre, depto, rol) {
-    idEditando = id;
+async function eliminarEmpleado(id) {
+  if (confirm("¿Estás seguro de que deseas eliminar a este empleado?")) {
+    try {
+      const res = await fetch(`${API_BASE}/empleados/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        alert("✅ Empleado eliminado con éxito");
+        cargarEmpleados();
+      }
+    } catch (error) {
+      console.error("Error al eliminar:", error);
+    }
+  }
+}
+
+async function prepararEdicion(id, nombre, depto, rol) {
+  idEditando = id;
+
+  // Solo intenta llenar si el select existe en el HTML actual
+  const selectDep = document.getElementById("departamento");
+  if (selectDep) {
+    await actualizarSelectDepartamentos();
+    selectDep.value = depto;
+  }
+
+  if (document.getElementById("nombre"))
     document.getElementById("nombre").value = nombre;
-    document.getElementById("departamento").value = depto;
+  if (document.getElementById("rol"))
     document.getElementById("rol").value = rol;
 
-    const btnGuardar = document.getElementById("guardarEmpleado");
-    if (btnGuardar) btnGuardar.innerText = "Actualizar Cambios";
-
-    const modal = document.getElementById("modalEmpleado");
-    if (modal) modal.style.display = "block";
+  const modal = document.getElementById("modalEmpleado");
+  if (modal) modal.style.display = "flex";
 }
 
-// --- LÓGICA DEL BOTÓN GUARDAR (POST y PUT) ---
 const btnGuardar = document.getElementById("guardarEmpleado");
 if (btnGuardar) {
-    btnGuardar.onclick = async () => {
-        const nombre = document.getElementById("nombre").value;
-        const departamento = document.getElementById("departamento").value;
-        const rol = document.getElementById("rol").value;
+  btnGuardar.onclick = async () => {
+    const nombre = document.getElementById("nombre").value;
+    const departamento = document.getElementById("departamento").value;
+    const rol = document.getElementById("rol").value;
 
-        if (!nombre || !departamento || !rol) return alert("Por favor llena todos los campos");
+    if (!nombre || !departamento || !rol)
+      return alert("Por favor llena todos los campos");
 
-        const datosEmp = { nombre, departamento, rol };
-
-        try {
-            let url = `${API_BASE}/empleados`;
-            let metodo = 'POST';
-
-            if (idEditando) {
-                url += `/${idEditando}`;
-                metodo = 'PUT';
-            }
-
-            const res = await fetch(url, {
-                method: metodo,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosEmp)
-            });
-
-            if (res.ok) {
-                alert(idEditando ? "✅ Empleado actualizado" : "✅ Empleado guardado");
-                idEditando = null;
-                const modal = document.getElementById("modalEmpleado");
-                if (modal) modal.style.display = "none";
-                cargarEmpleados();
-            }
-        } catch (error) {
-            alert("Error en la operación");
-        }
-    };
-}
-
-// --- CARGAR DEPARTAMENTOS ---
-async function cargarDepartamentos() {
-    const tabla = document.getElementById("tablaDepartamentos");
-    const contenedorTarjetas = document.getElementById("contenedorTarjetas"); // Seleccionamos el div vacío
-    if (!tabla) return;
+    const datosEmp = { nombre, departamento, rol };
+    let url = `${API_BASE}/empleados`;
+    let metodo = idEditando ? "PUT" : "POST";
+    if (idEditando) url += `/${idEditando}`;
 
     try {
-        const res = await fetch(`${API_BASE}/departamentos`);
-        const datos = await res.json();
+      const res = await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosEmp),
+      });
 
-        tabla.innerHTML = "";
-        if (contenedorTarjetas) contenedorTarjetas.innerHTML = ""; // Limpiamos tarjetas antes de cargar
+      if (res.ok) {
+        alert(idEditando ? "✅ Empleado actualizado" : "✅ Empleado guardado");
+        idEditando = null;
+        const modal = document.getElementById("modalEmpleado");
+        if (modal) modal.style.display = "none";
+        cargarEmpleados();
+      }
+    } catch (error) {
+      alert("Error en la operación");
+    }
+  };
+}
 
-        datos.forEach(dep => {
-            // 1. Llenar la tabla (Lo que ya tenías, pero con estilos extra)
-            tabla.innerHTML += `
+// ==========================================
+// 3. MÓDULO: DEPARTAMENTOS
+// ==========================================
+
+async function cargarDepartamentos() {
+  const tabla = document.getElementById("tablaDepartamentos");
+  const contenedorTarjetas = document.getElementById("contenedorTarjetas");
+  if (!tabla) return;
+
+  try {
+    // Traemos Departamentos y Empleados para cruzar los datos
+    const [resDep, resEmp] = await Promise.all([
+      fetch(`${API_BASE}/departamentos`),
+      fetch(`${API_BASE}/empleados`),
+    ]);
+
+    const departamentos = await resDep.json();
+    const empleados = await resEmp.json();
+
+    tabla.innerHTML = "";
+    if (contenedorTarjetas) contenedorTarjetas.innerHTML = "";
+
+    departamentos.forEach((dep) => {
+      // Conteo real cruzando la tabla de empleados
+      const conteoReal = empleados.filter(
+        (e) => e.departamento === dep.nombre,
+      ).length;
+
+      // Llenar la tabla
+      tabla.innerHTML += `
                 <tr class="border-t hover:bg-gray-50 transition">
                     <td class="p-3 font-semibold text-gray-800">${dep.nombre}</td>
-                    <td class="p-3 text-gray-600">${dep.responsable || 'Sin asignar'}</td>
-                    <td class="p-3 text-center font-medium">${dep.numEmpleados || 0}</td>
+                    <td class="p-3 text-gray-600">${dep.responsable || "Sin asignar"}</td>
+                    <td class="p-3 text-center font-medium">
+                        <span class="bg-gray-100 px-2 py-1 rounded text-sm">${conteoReal}</span>
+                    </td>
                     <td class="p-3">
-                        <span class="${dep.estado === 'Inactivo' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'} px-2 py-1 rounded-full text-xs font-semibold">
-                            ${dep.estado || 'Activo'}
+                        <span class="${dep.estado === "Inactivo" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"} px-2 py-1 rounded-full text-xs font-semibold">
+                            ${dep.estado || "Activo"}
                         </span>
                     </td>
                     <td class="p-3 text-right">
@@ -167,38 +218,150 @@ async function cargarDepartamentos() {
                     </td>
                 </tr>`;
 
-            // 2. Llenar las Tarjetas Superiores (NUEVO)
-            if (contenedorTarjetas) {
-                const colorBorde = dep.estado === 'Inactivo' ? 'border-red-400' : 'border-blue-500';
-                contenedorTarjetas.innerHTML += `
+      // Llenar Tarjetas Superiores
+      if (contenedorTarjetas) {
+        const colorBorde =
+          dep.estado === "Inactivo" ? "border-red-400" : "border-blue-500";
+        contenedorTarjetas.innerHTML += `
                     <div class="bg-white p-5 rounded-lg shadow-sm border-t-4 ${colorBorde} hover:shadow-md transition">
                         <h3 class="font-bold text-lg text-gray-800">${dep.nombre}</h3>
-                        <p class="text-sm text-gray-500 mt-2 flex items-center gap-2">
-                            👤 ${dep.responsable || 'Sin asignar'}
-                        </p>
-                        <div class="mt-4 pt-3 border-t border-gray-100 flex justify-between items-center">
+                        <p class="text-sm text-gray-500 mt-2">👤 ${dep.responsable || "Sin asignar"}</p>
+                        <div class="mt-4 pt-3 border-t border-gray-100">
                             <span class="text-xs font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                                👥 ${dep.numEmpleados || 0} Empleados
+                                👥 ${conteoReal} Empleados
                             </span>
                         </div>
-                    </div>
-                `;
-            }
-        });
+                    </div>`;
+      }
+    });
 
-        // 3. Actualizar métricas inferiores (Corregido el ID de deptosActivos)
-        if (document.getElementById("totalDeptos")) {
-            document.getElementById("totalDeptos").innerText = datos.length;
-        }
-        if (document.getElementById("deptosActivos")) {
-            const activos = datos.filter(d => d.estado !== 'Inactivo').length;
-            document.getElementById("deptosActivos").innerText = activos;
-        }
-
-    } catch (e) { console.error("Error al cargar departamentos:", e); }
+    // Métricas inferiores
+    if (document.getElementById("totalDeptos"))
+      document.getElementById("totalDeptos").innerText = departamentos.length;
+    if (document.getElementById("deptosActivos")) {
+      const activos = departamentos.filter(
+        (d) => d.estado !== "Inactivo",
+      ).length;
+      document.getElementById("deptosActivos").innerText = activos;
+    }
+  } catch (e) {
+    console.error("Error al cargar departamentos:", e);
+  }
 }
 
-// --- CARGAR NÓMINA ---
+const btnNuevoDepto = document.getElementById("btnNuevoDepto");
+if (btnNuevoDepto) {
+  btnNuevoDepto.onclick = () => {
+    idDeptoEditando = null;
+    document.getElementById("nombreDepto").value = "";
+    document.getElementById("responsableDepto").value = "";
+
+    const btnGuardar = document.getElementById("guardarDepto");
+    if (btnGuardar) btnGuardar.innerText = "Guardar";
+
+    const titulo = document.getElementById("tituloModalDepto");
+    if (titulo) titulo.innerText = "Nuevo Departamento";
+
+    document.getElementById("modalDepto").style.display = "flex";
+  };
+}
+
+function prepararEdicionDepto(id, nombre, responsable) {
+  idDeptoEditando = id;
+  document.getElementById("nombreDepto").value = nombre;
+  document.getElementById("responsableDepto").value = responsable;
+
+  const btnGuardar = document.getElementById("guardarDepto");
+  if (btnGuardar) btnGuardar.innerText = "Actualizar Cambios";
+
+  const titulo = document.getElementById("tituloModalDepto");
+  if (titulo) titulo.innerText = "Editar Departamento";
+
+  const modal = document.getElementById("modalDepto");
+  if (modal) modal.style.display = "flex";
+}
+
+const btnGuardarDepto = document.getElementById("guardarDepto");
+if (btnGuardarDepto) {
+  btnGuardarDepto.onclick = async () => {
+    const nombre = document.getElementById("nombreDepto").value;
+    const responsable = document.getElementById("responsableDepto").value;
+    const estado = document.getElementById("estadoDepto")
+      ? document.getElementById("estadoDepto").value
+      : "Activo";
+
+    if (!nombre) return alert("El nombre del departamento es obligatorio");
+
+    const datos = { nombre, responsable, estado };
+    let url = `${API_BASE}/departamentos`;
+    let metodo = idDeptoEditando ? "PUT" : "POST";
+    if (idDeptoEditando) url += `/${idDeptoEditando}`;
+
+    try {
+      const res = await fetch(url, {
+        method: metodo,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datos),
+      });
+
+      if (res.ok) {
+        document.getElementById("modalDepto").style.display = "none";
+        alert(
+          idDeptoEditando
+            ? "✅ Departamento actualizado"
+            : "✅ Departamento creado",
+        );
+        cargarDepartamentos();
+      } else {
+        // NUEVO: Esto nos avisará si el backend rechaza la actualización
+        alert(
+          "⚠️ El servidor no pudo actualizar. Revisa la consola para más detalles.",
+        );
+        console.error("Error del servidor:", await res.text());
+      }
+    } catch (e) {
+      alert("❌ Error de conexión al intentar guardar");
+      console.error(e);
+    }
+  };
+}
+
+async function eliminarDepartamento(id) {
+  if (confirm("¿Eliminar este departamento? Los empleados no se borrarán.")) {
+    await fetch(`${API_BASE}/departamentos/${id}`, { method: "DELETE" });
+    cargarDepartamentos();
+  }
+}
+
+async function llenarSelectDepartamentos(selectId) {
+  const select = document.getElementById(selectId);
+  if (!select) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/departamentos`);
+    const departamentos = await res.json();
+
+    // Limpiamos y añadimos opción por defecto
+    select.innerHTML = '<option value="">Seleccione un área...</option>';
+
+    departamentos.forEach((dep) => {
+      if (dep.estado !== "Inactivo") {
+        // Solo mostrar los activos
+        const option = document.createElement("option");
+        option.value = dep.nombre;
+        option.textContent = dep.nombre;
+        select.appendChild(option);
+      }
+    });
+  } catch (e) {
+    console.error("Error al llenar lista de departamentos:", e);
+  }
+}
+// ==========================================
+// 4. MÓDULO: NÓMINA
+// ==========================================
+
+
 async function cargarNomina() {
     const tabla = document.getElementById("tablaNomina");
     if (!tabla) return;
@@ -208,239 +371,241 @@ async function cargarNomina() {
         const datos = await res.json();
 
         tabla.innerHTML = "";
+        
         let sumaTotal = 0;
+        let enEspera = 0;
+        let procesados = 0;
+        let rechazos = 0;
 
-        datos.forEach(pago => {
-            sumaTotal += pago.monto;
+        datos.forEach((pago) => {
+            const montoNum = Number(pago.monto) || 0;
+            // Limpiamos espacios para asegurar que el conteo funcione
+            const estadoLimpio = pago.estado ? pago.estado.trim() : "Pendiente";
+
+            // Lógica de conteo para las tarjetas superiores
+            if (estadoLimpio === "Pendiente") {
+                enEspera++;
+            } else if (estadoLimpio === "Pagado") {
+                procesados++;
+                sumaTotal += montoNum;
+            } else if (estadoLimpio === "Rechazado") {
+                rechazos++;
+            }
+
             const fechaFormateada = new Date(pago.fecha).toLocaleDateString();
 
+            // Dibujamos la tabla
             tabla.innerHTML += `
-                <tr class="border-t">
-                    <td class="p-3">${pago.empleado}</td>
-                    <td class="p-3">${pago.departamento}</td>
-                    <td class="p-3 font-bold text-green-600">$${pago.monto.toLocaleString()}</td>
-                    <td class="p-3">${fechaFormateada}</td>
-                    <td class="p-3">
-                        <span class="px-2 py-1 rounded-full text-xs ${pago.estado === 'Pagado' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}">
-                            ${pago.estado}
+                <tr class="border-t hover:bg-gray-50 transition">
+                    <td class="p-4 font-semibold text-gray-800">${pago.empleado || "N/A"}</td>
+                    <td class="p-4 text-gray-600">${pago.departamento || "N/A"}</td>
+                    <td class="p-4 font-bold text-gray-900">$${montoNum.toLocaleString()}</td>
+                    <td class="p-4 text-gray-500 text-sm">${fechaFormateada}</td>
+                    <td class="p-4">
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold ${obtenerClaseEstado(estadoLimpio)}">
+                            ${estadoLimpio}
                         </span>
                     </td>
-                    <td class="p-3 text-blue-600 cursor-pointer">Ver recibo</td>
+                    <td class="p-4 text-right">
+                        <button class="text-blue-600 hover:underline text-sm font-medium">Recibo</button>
+                    </td>
                 </tr>`;
         });
 
+        // --- ACTUALIZACIÓN DE TUS TARJETAS (IDs CORREGIDOS SEGÚN TU HTML) ---
+        
+        // Pagos en Espera (Tarjeta Amarilla)
+        if (document.getElementById("pagosPendientes")) {
+            document.getElementById("pagosPendientes").innerText = enEspera;
+        }
+
+        // Incidencias / Rechazos (Tarjeta Roja abajo)
+        if (document.getElementById("pagosRechazados")) {
+            document.getElementById("pagosRechazados").innerText = rechazos;
+        }
+
+        // Transacciones Exitosas (Tarjeta Verde)
+        if (document.getElementById("empleadosPagados")) {
+            document.getElementById("empleadosPagados").innerText = procesados;
+        }
+
+        // Pagos Procesados (Tarjeta Púrpura abajo)
+        if (document.getElementById("pagosProcesados")) {
+            document.getElementById("pagosProcesados").innerText = procesados;
+        }
+
+        // Total Egresos (Tarjeta Azul)
         if (document.getElementById("totalNominaMes")) {
             document.getElementById("totalNominaMes").innerText = `$${sumaTotal.toLocaleString()}`;
         }
-    } catch (e) { console.error("Error al cargar nómina:", e); }
+
+        // Promedio de Pago
+        if (document.getElementById("promedioPago") && procesados > 0) {
+            const promedio = sumaTotal / procesados;
+            document.getElementById("promedioPago").innerText = `$${promedio.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        }
+
+        // Ejecutar anuncio de cierre si no hay pendientes
+        verificarCierreNomina(enEspera, procesados);
+
+    } catch (e) {
+        console.error("Error al cargar nómina:", e);
+    }
 }
 
 // ==========================================
-// CARGAR MÉTRICAS DEL DASHBOARD (index.html)
+// FUNCIONES AUXILIARES (AGREGAR O REEMPLAZAR)
 // ==========================================
+
+function obtenerClaseEstado(estado) {
+    switch (estado) {
+        case 'Pendiente': return 'bg-yellow-100 text-yellow-700';
+        case 'Pagado': return 'bg-green-100 text-green-700';
+        case 'Rechazado': return 'bg-red-100 text-red-700';
+        default: return 'bg-gray-100 text-gray-700';
+    }
+}
+
+function verificarCierreNomina(pendientes, procesados) {
+    // Usamos el ID "alertaCierre" que tienes al final de tu HTML
+    const contenedor = document.getElementById("alertaCierre");
+    if (!contenedor) return;
+
+    if (pendientes === 0 && procesados > 0) {
+        contenedor.className = "bg-green-50 border-l-4 border-green-500 p-6 rounded-xl shadow-sm mt-8 flex justify-between items-center";
+        contenedor.innerHTML = `
+            <div>
+                <h3 class="font-bold text-green-800 flex items-center gap-2">✅ Nómina de Periodo Finalizada</h3>
+                <p class="text-sm text-green-700 mt-1">Todos los pagos han sido procesados. No quedan registros pendientes.</p>
+            </div>
+            <span class="text-green-500 text-2xl">🎉</span>
+        `;
+    }
+}
+// ==========================================
+// 5. MÓDULO: DASHBOARD (INDEX)
+// ==========================================
+
 async function cargarMetricasDashboard() {
-    // Solo ejecutamos esto si estamos en la vista del dashboard (index.html)
-    if (!document.getElementById("nominaMensual")) return;
+  if (!document.getElementById("nominaMensual")) return;
 
-    try {
-        // Hacemos las tres peticiones a la API al mismo tiempo para que cargue súper rápido
-        const [resEmpleados, resDeptos, resNomina] = await Promise.all([
-            fetch(`${API_BASE}/empleados`),
-            fetch(`${API_BASE}/departamentos`),
-            fetch(`${API_BASE}/nomina`)
-        ]);
+  try {
+    const [resEmpleados, resDeptos, resNomina] = await Promise.all([
+      fetch(`${API_BASE}/empleados`),
+      fetch(`${API_BASE}/departamentos`),
+      fetch(`${API_BASE}/nomina`),
+    ]);
 
-        const empleados = await resEmpleados.json();
-        const deptos = await resDeptos.json();
-        const nomina = await resNomina.json();
+    const empleados = await resEmpleados.json();
+    const deptos = await resDeptos.json();
+    const nomina = await resNomina.json();
 
-        // 1. Llenar tarjetas superiores (Totales)
-        document.getElementById("totalEmpleados").innerText = empleados.length;
-        document.getElementById("totalDepartamentos").innerText = deptos.length;
+    // Totales Superiores
+    document.getElementById("totalEmpleados").innerText = empleados.length;
+    document.getElementById("totalDepartamentos").innerText = deptos.length;
 
-        // Sumar todos los pagos de nómina
-        const totalNomina = nomina.reduce((suma, pago) => suma + (pago.monto || 0), 0);
-        document.getElementById("nominaMensual").innerText = `$${totalNomina.toLocaleString('es-MX')}`;
+    const totalNomina = nomina.reduce(
+      (suma, pago) => suma + (pago.monto || 0),
+      0,
+    );
+    document.getElementById("nominaMensual").innerText =
+      `$${totalNomina.toLocaleString("es-MX")}`;
 
-        // Empleados activos como demostración de "contrataciones"
-        const activos = empleados.filter(emp => emp.estado !== 'Inactivo').length;
-        document.getElementById("contratacionesMes").innerText = activos;
+    const activos = empleados.filter((emp) => emp.estado !== "Inactivo").length;
+    document.getElementById("contratacionesMes").innerText = activos;
 
-        // 2. Actividad Reciente (Muestra los últimos 3 empleados agregados)
-        const listaActividad = document.getElementById("actividadReciente");
-        listaActividad.innerHTML = "";
-        const ultimosEmpleados = empleados.slice(-3).reverse();
+    // Actividad Reciente
+    const listaActividad = document.getElementById("actividadReciente");
+    listaActividad.innerHTML = "";
+    const ultimosEmpleados = empleados.slice(-3).reverse();
 
-        if (ultimosEmpleados.length === 0) {
-            listaActividad.innerHTML = "<li class='text-gray-400 italic'>No hay actividad reciente</li>";
-        } else {
-            ultimosEmpleados.forEach(emp => {
-                listaActividad.innerHTML += `
+    if (ultimosEmpleados.length === 0) {
+      listaActividad.innerHTML =
+        "<li class='text-gray-400 italic'>No hay actividad reciente</li>";
+    } else {
+      ultimosEmpleados.forEach((emp) => {
+        listaActividad.innerHTML += `
                     <li class="flex items-center gap-2 border-b pb-2">
                         <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span class="text-sm">Nuevo empleado: <strong>${emp.nombre}</strong> (${emp.rol || 'Sin rol'})</span>
-                    </li>
-                `;
-            });
-        }
+                        <span class="text-sm">Nuevo empleado: <strong>${emp.nombre}</strong> (${emp.rol || "Sin rol"})</span>
+                    </li>`;
+      });
+    }
 
-        // 3. Alertas del sistema (Pagos pendientes o departamentos inactivos)
-        const listaAlertas = document.getElementById("alertasSistema");
-        listaAlertas.innerHTML = "";
-        let hayAlertas = false;
+    // Alertas del Sistema
+    const listaAlertas = document.getElementById("alertasSistema");
+    listaAlertas.innerHTML = "";
+    let hayAlertas = false;
 
-        const pagosPendientes = nomina.filter(p => p.estado === 'Pendiente').length;
-        if (pagosPendientes > 0) {
-            listaAlertas.innerHTML += `
+    const pagosPendientes = nomina.filter(
+      (p) => p.estado === "Pendiente",
+    ).length;
+    if (pagosPendientes > 0) {
+      listaAlertas.innerHTML += `
                 <li class="flex items-center gap-2 border-b pb-2 text-orange-600">
                     <span>Tienes <strong>${pagosPendientes}</strong> pagos de nómina pendientes.</span>
                 </li>`;
-            hayAlertas = true;
-        }
+      hayAlertas = true;
+    }
 
-        const deptosInactivos = deptos.filter(d => d.estado === 'Inactivo').length;
-        if (deptosInactivos > 0) {
-            listaAlertas.innerHTML += `
+    const deptosInactivos = deptos.filter(
+      (d) => d.estado === "Inactivo",
+    ).length;
+    if (deptosInactivos > 0) {
+      listaAlertas.innerHTML += `
                 <li class="flex items-center gap-2 border-b pb-2 text-red-600">
                     <span>🚨 Hay <strong>${deptosInactivos}</strong> departamentos inactivos.</span>
                 </li>`;
-            hayAlertas = true;
-        }
-
-        if (!hayAlertas) {
-            listaAlertas.innerHTML = "<li class='text-green-600 font-medium'>Todo está en orden. Sin alertas.</li>";
-        }
-
-    } catch (e) {
-        console.error("Error al cargar el dashboard:", e);
+      hayAlertas = true;
     }
+
+    if (!hayAlertas) {
+      listaAlertas.innerHTML =
+        "<li class='text-green-600 font-medium'>Todo está en orden. Sin alertas.</li>";
+    }
+  } catch (e) {
+    console.error("Error al cargar el dashboard:", e);
+  }
 }
 
-// --- BUSCADOR ---
+// ==========================================
+// 6. UTILIDADES: BUSCADOR Y GLOBALES
+// ==========================================
+
 const inputBuscar = document.getElementById("buscarEmpleado");
 if (inputBuscar) {
-    inputBuscar.addEventListener("input", (e) => {
-        const texto = e.target.value.toLowerCase();
-        const filas = document.querySelectorAll("#tablaEmpleados tr");
-        filas.forEach(fila => {
-            const nombre = fila.cells[0].innerText.toLowerCase();
-            fila.style.display = nombre.includes(texto) ? "" : "none";
-        });
+  inputBuscar.addEventListener("input", (e) => {
+    const texto = e.target.value.toLowerCase();
+    const filas = document.querySelectorAll("#tablaEmpleados tr");
+    filas.forEach((fila) => {
+      const nombre = fila.cells[0].innerText.toLowerCase();
+      fila.style.display = nombre.includes(texto) ? "" : "none";
     });
-}
-// ---  EDICIÓN DEPARTAMENTO ---
-// 1. Lógica para abrir modal de departamento
-const btnNuevoDepto = document.getElementById("btnNuevoDepto");
-if (btnNuevoDepto) {
-    btnNuevoDepto.onclick = () => {
-        idDeptoEditando = null;
-        document.getElementById("nombreDepto").value = "";
-        document.getElementById("responsableDepto").value = "";
-        document.getElementById("modalDepto").style.display = "block";
-    };
+  });
 }
 
-// 2. Función para GUARDAR / EDITAR Departamento
-const btnGuardarDepto = document.getElementById("guardarDepto");
-if (btnGuardarDepto) {
-    btnGuardarDepto.onclick = async () => {
-        const nombre = document.getElementById("nombreDepto").value;
-        const responsable = document.getElementById("responsableDepto").value;
-        const estado = document.getElementById("estadoDepto").value;
-
-        const datos = { nombre, responsable, estado };
-        let url = `${API_BASE}/departamentos`;
-        let metodo = idDeptoEditando ? 'PUT' : 'POST';
-        if (idDeptoEditando) url += `/${idDeptoEditando}`;
-
-        try {
-            const res = await fetch(url, {
-                method: metodo,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datos)
-            });
-            if (res.ok) {
-                document.getElementById("modalDepto").style.display = "none";
-                cargarDepartamentos(); // Recargar la tabla
-                alert("Operación exitosa");
-            }
-        } catch (e) { alert("Error al guardar"); }
-    };
-}
-
-// 3. Función para ELIMINAR Departamento
-async function eliminarDepartamento(id) {
-    if (confirm("¿Eliminar este departamento?")) {
-        await fetch(`${API_BASE}/departamentos/${id}`, { method: 'DELETE' });
-        cargarDepartamentos();
-    }
-}
-
-// --- EXPOSICIÓN GLOBAL Y CERRAR MODAL ---
+// Exponer funciones necesarias al objeto window
 window.eliminarEmpleado = eliminarEmpleado;
 window.prepararEdicion = prepararEdicion;
 window.eliminarDepartamento = eliminarDepartamento;
-
-window.onclick = function (event) {
-    const modal = document.getElementById("modalEmpleado");
-    if (event.target == modal) {
-        modal.style.display = "none";
-        idEditando = null;
-    }
-}
-
-// ==========================================
-// LÓGICA DE NÓMINA (CREACIÓN)
-// ==========================================
-
-// 1. Abrir el modal y limpiar los campos
-function prepararNuevaNomina() {
-    document.getElementById("nomEmpleado").value = "";
-    document.getElementById("nomDepartamento").value = "";
-    document.getElementById("nomMonto").value = "";
-    document.getElementById("nomEstado").value = "Pendiente";
-
-    // Usamos 'flex' para que las clases de Tailwind centren el modal correctamente
-    document.getElementById("modalNomina").style.display = "flex";
-}
-
-// 2. Guardar el registro en la base de datos
-const btnGuardarNomina = document.getElementById("guardarNomina");
-if (btnGuardarNomina) {
-    btnGuardarNomina.onclick = async () => {
-        const empleado = document.getElementById("nomEmpleado").value;
-        const departamento = document.getElementById("nomDepartamento").value;
-        const monto = parseFloat(document.getElementById("nomMonto").value);
-        const estado = document.getElementById("nomEstado").value;
-
-        // Validación básica
-        if (!empleado || !departamento || isNaN(monto)) {
-            return alert("Por favor llena todos los campos numéricos y de texto correctamente.");
-        }
-
-        const datosPago = { empleado, departamento, monto, estado };
-
-        try {
-            const res = await fetch(`${API_BASE}/nomina`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(datosPago)
-            });
-
-            if (res.ok) {
-                document.getElementById("modalNomina").style.display = "none";
-                cargarNomina(); // Recargamos la tabla para que aparezca el nuevo registro
-                alert("Pago registrado exitosamente");
-            } else {
-                alert("Error al registrar el pago");
-            }
-        } catch (e) {
-            console.error("Error al guardar nómina:", e);
-            alert("Error de conexión con el servidor");
-        }
-    };
-}
-
-// 3. Exponer la función globalmente para que el botón de HTML pueda usarla
+window.prepararEdicionDepto = prepararEdicionDepto;
 window.prepararNuevaNomina = prepararNuevaNomina;
 
+// Cierre de Modales haciendo clic fuera de ellos
+window.onclick = function (event) {
+  const modalEmp = document.getElementById("modalEmpleado");
+  const modalDep = document.getElementById("modalDepto");
+  const modalNom = document.getElementById("modalNomina");
+
+  if (event.target == modalEmp) {
+    modalEmp.style.display = "none";
+    idEditando = null;
+  }
+  if (event.target == modalDep) {
+    modalDep.style.display = "none";
+    idDeptoEditando = null;
+  }
+  if (event.target == modalNom) {
+    modalNom.style.display = "none";
+  }
+};
