@@ -108,7 +108,7 @@ async function eliminarEmpleado(id) {
         method: "DELETE",
       });
       if (res.ok) {
-        alert("✅ Empleado eliminado con éxito");
+        alert("Empleado eliminado con éxito");
         cargarEmpleados();
       }
     } catch (error) {
@@ -159,7 +159,7 @@ if (btnGuardar) {
       });
 
       if (res.ok) {
-        alert(idEditando ? "✅ Empleado actualizado" : "✅ Empleado guardado");
+        alert(idEditando ? "Empleado actualizado" : "Empleado guardado");
         idEditando = null;
         const modal = document.getElementById("modalEmpleado");
         if (modal) modal.style.display = "none";
@@ -225,10 +225,10 @@ async function cargarDepartamentos() {
         contenedorTarjetas.innerHTML += `
                     <div class="bg-white p-5 rounded-lg shadow-sm border-t-4 ${colorBorde} hover:shadow-md transition">
                         <h3 class="font-bold text-lg text-gray-800">${dep.nombre}</h3>
-                        <p class="text-sm text-gray-500 mt-2">👤 ${dep.responsable || "Sin asignar"}</p>
+                        <p class="text-sm text-gray-500 mt-2"> ${dep.responsable || "Sin asignar"}</p>
                         <div class="mt-4 pt-3 border-t border-gray-100">
                             <span class="text-xs font-semibold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                                👥 ${conteoReal} Empleados
+                                 ${conteoReal} Empleados
                             </span>
                         </div>
                     </div>`;
@@ -308,19 +308,19 @@ if (btnGuardarDepto) {
         document.getElementById("modalDepto").style.display = "none";
         alert(
           idDeptoEditando
-            ? "✅ Departamento actualizado"
-            : "✅ Departamento creado",
+            ? "Departamento actualizado"
+            : "Departamento creado",
         );
         cargarDepartamentos();
       } else {
         // NUEVO: Esto nos avisará si el backend rechaza la actualización
         alert(
-          "⚠️ El servidor no pudo actualizar. Revisa la consola para más detalles.",
+          "El servidor no pudo actualizar. Revisa la consola para más detalles.",
         );
         console.error("Error del servidor:", await res.text());
       }
     } catch (e) {
-      alert("❌ Error de conexión al intentar guardar");
+      alert("Error de conexión al intentar guardar");
       console.error(e);
     }
   };
@@ -363,39 +363,37 @@ async function llenarSelectDepartamentos(selectId) {
 
 
 async function cargarNomina() {
-    const tabla = document.getElementById("tablaNomina");
-    if (!tabla) return;
+  const tabla = document.getElementById("tablaNomina");
+  if (!tabla) return;
 
-    try {
-        const res = await fetch(`${API_BASE}/nomina`);
-        const datos = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/nomina`);
+    const datos = await res.json();
 
-        tabla.innerHTML = "";
-        
-        let sumaTotal = 0;
-        let enEspera = 0;
-        let procesados = 0;
-        let rechazos = 0;
+    tabla.innerHTML = "";
 
-        datos.forEach((pago) => {
-            const montoNum = Number(pago.monto) || 0;
-            // Limpiamos espacios para asegurar que el conteo funcione
-            const estadoLimpio = pago.estado ? pago.estado.trim() : "Pendiente";
+    let sumaTotal = 0;
+    let enEspera = 0;
+    let procesados = 0;
+    let rechazos = 0;
 
-            // Lógica de conteo para las tarjetas superiores
-            if (estadoLimpio === "Pendiente") {
-                enEspera++;
-            } else if (estadoLimpio === "Pagado") {
-                procesados++;
-                sumaTotal += montoNum;
-            } else if (estadoLimpio === "Rechazado") {
-                rechazos++;
-            }
+    datos.forEach((pago) => {
+      const montoNum = Number(pago.monto) || 0;
+      const estadoLimpio = pago.estado ? pago.estado.trim() : "Pendiente";
 
-            const fechaFormateada = new Date(pago.fecha).toLocaleDateString();
+      if (estadoLimpio === "Pendiente") {
+        enEspera++;
+      } else if (estadoLimpio === "Pagado") {
+        procesados++;
+        sumaTotal += montoNum;
+      } else if (estadoLimpio === "Rechazado") {
+        rechazos++;
+      }
 
-            // Dibujamos la tabla
-            tabla.innerHTML += `
+      const fechaFormateada = new Date(pago.fecha).toLocaleDateString();
+
+      // Dibujamos la tabla
+      tabla.innerHTML += `
                 <tr class="border-t hover:bg-gray-50 transition">
                     <td class="p-4 font-semibold text-gray-800">${pago.empleado || "N/A"}</td>
                     <td class="p-4 text-gray-600">${pago.departamento || "N/A"}</td>
@@ -407,50 +405,32 @@ async function cargarNomina() {
                         </span>
                     </td>
                     <td class="p-4 text-right">
-                        <button class="text-blue-600 hover:underline text-sm font-medium">Recibo</button>
+                        <button class="text-blue-600 hover:underline text-sm font-medium mr-3">Recibo</button>
+                        
+                        <button onclick="eliminarNomina('${pago._id}')" class="text-red-600 hover:underline text-sm font-medium">
+                            Borrar
+                        </button>
                     </td>
                 </tr>`;
-        });
+    });
 
-        // --- ACTUALIZACIÓN DE TUS TARJETAS (IDs CORREGIDOS SEGÚN TU HTML) ---
-        
-        // Pagos en Espera (Tarjeta Amarilla)
-        if (document.getElementById("pagosPendientes")) {
-            document.getElementById("pagosPendientes").innerText = enEspera;
-        }
+    // --- MANTENEMOS TODA TU LÓGICA DE TARJETAS ---
+    if (document.getElementById("pagosPendientes")) document.getElementById("pagosPendientes").innerText = enEspera;
+    if (document.getElementById("pagosRechazados")) document.getElementById("pagosRechazados").innerText = rechazos;
+    if (document.getElementById("empleadosPagados")) document.getElementById("empleadosPagados").innerText = procesados;
+    if (document.getElementById("pagosProcesados")) document.getElementById("pagosProcesados").innerText = procesados;
+    if (document.getElementById("totalNominaMes")) document.getElementById("totalNominaMes").innerText = `$${sumaTotal.toLocaleString()}`;
 
-        // Incidencias / Rechazos (Tarjeta Roja abajo)
-        if (document.getElementById("pagosRechazados")) {
-            document.getElementById("pagosRechazados").innerText = rechazos;
-        }
-
-        // Transacciones Exitosas (Tarjeta Verde)
-        if (document.getElementById("empleadosPagados")) {
-            document.getElementById("empleadosPagados").innerText = procesados;
-        }
-
-        // Pagos Procesados (Tarjeta Púrpura abajo)
-        if (document.getElementById("pagosProcesados")) {
-            document.getElementById("pagosProcesados").innerText = procesados;
-        }
-
-        // Total Egresos (Tarjeta Azul)
-        if (document.getElementById("totalNominaMes")) {
-            document.getElementById("totalNominaMes").innerText = `$${sumaTotal.toLocaleString()}`;
-        }
-
-        // Promedio de Pago
-        if (document.getElementById("promedioPago") && procesados > 0) {
-            const promedio = sumaTotal / procesados;
-            document.getElementById("promedioPago").innerText = `$${promedio.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-        }
-
-        // Ejecutar anuncio de cierre si no hay pendientes
-        verificarCierreNomina(enEspera, procesados);
-
-    } catch (e) {
-        console.error("Error al cargar nómina:", e);
+    if (document.getElementById("promedioPago") && procesados > 0) {
+      const promedio = sumaTotal / procesados;
+      document.getElementById("promedioPago").innerText = `$${promedio.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
     }
+
+    verificarCierreNomina(enEspera, procesados);
+
+  } catch (e) {
+    console.error("Error al cargar nómina:", e);
+  }
 }
 
 // ==========================================
@@ -458,29 +438,29 @@ async function cargarNomina() {
 // ==========================================
 
 function obtenerClaseEstado(estado) {
-    switch (estado) {
-        case 'Pendiente': return 'bg-yellow-100 text-yellow-700';
-        case 'Pagado': return 'bg-green-100 text-green-700';
-        case 'Rechazado': return 'bg-red-100 text-red-700';
-        default: return 'bg-gray-100 text-gray-700';
-    }
+  switch (estado) {
+    case 'Pendiente': return 'bg-yellow-100 text-yellow-700';
+    case 'Pagado': return 'bg-green-100 text-green-700';
+    case 'Rechazado': return 'bg-red-100 text-red-700';
+    default: return 'bg-gray-100 text-gray-700';
+  }
 }
 
 function verificarCierreNomina(pendientes, procesados) {
-    // Usamos el ID "alertaCierre" que tienes al final de tu HTML
-    const contenedor = document.getElementById("alertaCierre");
-    if (!contenedor) return;
+  // Usamos el ID "alertaCierre" que tienes al final de tu HTML
+  const contenedor = document.getElementById("alertaCierre");
+  if (!contenedor) return;
 
-    if (pendientes === 0 && procesados > 0) {
-        contenedor.className = "bg-green-50 border-l-4 border-green-500 p-6 rounded-xl shadow-sm mt-8 flex justify-between items-center";
-        contenedor.innerHTML = `
+  if (pendientes === 0 && procesados > 0) {
+    contenedor.className = "bg-green-50 border-l-4 border-green-500 p-6 rounded-xl shadow-sm mt-8 flex justify-between items-center";
+    contenedor.innerHTML = `
             <div>
-                <h3 class="font-bold text-green-800 flex items-center gap-2">✅ Nómina de Periodo Finalizada</h3>
+                <h3 class="font-bold text-green-800 flex items-center gap-2">Nómina de Periodo Finalizada</h3>
                 <p class="text-sm text-green-700 mt-1">Todos los pagos han sido procesados. No quedan registros pendientes.</p>
             </div>
-            <span class="text-green-500 text-2xl">🎉</span>
+            <span class="text-green-500 text-2xl">-</span>
         `;
-    }
+  }
 }
 // ==========================================
 // 5. MÓDULO: DASHBOARD (INDEX)
@@ -554,7 +534,7 @@ async function cargarMetricasDashboard() {
     if (deptosInactivos > 0) {
       listaAlertas.innerHTML += `
                 <li class="flex items-center gap-2 border-b pb-2 text-red-600">
-                    <span>🚨 Hay <strong>${deptosInactivos}</strong> departamentos inactivos.</span>
+                    <span> Hay <strong>${deptosInactivos}</strong> departamentos inactivos.</span>
                 </li>`;
       hayAlertas = true;
     }
@@ -609,3 +589,101 @@ window.onclick = function (event) {
     modalNom.style.display = "none";
   }
 };
+
+async function prepararNuevaNomina() {
+    const modal = document.getElementById("modalNomina");
+    if (!modal) return;
+
+    // Abrimos el modal
+    modal.style.display = "flex";
+
+    try {
+        // 👇 AQUÍ ESTÁ LA MAGIA: Usamos los IDs exactos de tu HTML 👇
+        const selectEmp = document.getElementById("nomEmpleado");
+        const selectDep = document.getElementById("nomDepartamento");
+
+        // Traemos la información del backend
+        const [resEmp, resDep] = await Promise.all([
+            fetch(`${API_BASE}/empleados`),
+            fetch(`${API_BASE}/departamentos`)
+        ]);
+
+        const empleados = await resEmp.json();
+        const departamentos = await resDep.json();
+
+        // Llenamos la lista de empleados
+        if (selectEmp) {
+            selectEmp.innerHTML = '<option value="">-- Seleccione Empleado --</option>';
+            
+            empleados.forEach(emp => {
+                const option = document.createElement("option");
+                option.value = emp.nombre;
+                option.textContent = emp.nombre;
+                // Guardamos el departamento del empleado escondido aquí
+                option.dataset.depto = emp.departamento; 
+                selectEmp.appendChild(option);
+            });
+
+            // Al cambiar de empleado, asignar su departamento automáticamente
+            selectEmp.onchange = function() {
+                const deptoAsignado = this.options[this.selectedIndex].dataset.depto;
+                if (selectDep && deptoAsignado) {
+                    selectDep.value = deptoAsignado;
+                }
+            };
+        }
+
+        // Llenamos la lista de departamentos
+        if (selectDep) {
+            selectDep.innerHTML = '<option value="">-- Seleccione Departamento --</option>';
+            departamentos.forEach(dep => {
+                const option = document.createElement("option");
+                option.value = dep.nombre;
+                option.textContent = dep.nombre;
+                selectDep.appendChild(option);
+            });
+        }
+
+    } catch (error) {
+        console.error("Error cargando los datos para la nómina:", error);
+    }
+}
+
+// 2. FUNCIÓN PARA BORRAR NÓMINA
+async function eliminarNomina(id) {
+  if (!confirm("¿Estás seguro de eliminar este registro de pago?")) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/nomina/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      cargarNomina(); // Recargamos la tabla
+    }
+  } catch (e) {
+    alert("No se pudo eliminar la nómina");
+  }
+}
+
+async function eliminarNomina(id) {
+
+    console.log("El botón mandó a borrar el ID:", id);
+    if (!confirm("¿Estás seguro de que deseas eliminar este registro de pago?")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/nomina/${id}`, {
+            method: "DELETE"
+        });
+
+        if (res.ok) {
+            // Si el servidor lo borró bien, refrescamos la tabla automáticamente
+            cargarNomina(); 
+        } else {
+            alert("Error al intentar eliminar el registro.");
+        }
+    } catch (error) {
+        console.error("Error en la petición de borrado:", error);
+    }
+}
+
+// IMPORTANTE: Para que el HTML vea la función, agrégala a esta lista que ya tienes al final de tu app.js
+window.eliminarNomina = eliminarNomina;
+window.prepararNuevaNomina = prepararNuevaNomina;

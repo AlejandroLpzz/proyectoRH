@@ -21,7 +21,24 @@ const crearNomina = async (req, res) => {
     }
 };
 
+// Eliminar un registro de nómina (LA FUNCIÓN VA ANTES DE EXPORTARLA)
+const eliminarNomina = async (req, res) => {
+    try {
+        // 👇 AGREGA ESTE LOG 👇
+        console.log("Backend recibió la orden de borrar el ID:", req.params.id); 
+        
+        await Nomina.findByIdAndDelete(req.params.id);
+        res.json({ mensaje: "Registro de nómina eliminado" });
+    } catch (error) {
+        // 👇 AGREGA ESTE LOG DE ERROR 👇
+        console.error("🔥 ERROR REAL EN EL BACKEND:", error); 
+        res.status(500).json({ mensaje: "Error al eliminar la nómina" });
+    }
+};
+
+// 👇 EL EXPORT SIEMPRE VA HASTA EL FINAL 👇
 module.exports = {
     obtenerNomina,
-    crearNomina
+    crearNomina,
+    eliminarNomina 
 };
