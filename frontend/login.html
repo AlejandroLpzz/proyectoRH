@@ -2,73 +2,161 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Login - Sistema RH</title>
-
-  <!-- Tailwind CSS -->
+  <title>Acceso - Sistema RH</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="h-screen bg-gradient-to-br from-gray-100 to-gray-300 flex items-center justify-center">
 
-  <!-- Contenedor del login con fondo semitransparente y blur -->
   <div class="bg-white/90 backdrop-blur-md shadow-2xl rounded-2xl p-10 w-96">
 
-    <!-- Encabezado -->
     <div class="text-center mb-8">
-      <h1 class="text-3xl font-bold text-gray-800">Sistema RH</h1>
-      <p class="text-gray-500 text-sm">Panel de administración</p>
+      <h1 id="authTitle" class="text-3xl font-bold text-gray-800">Sistema RH</h1>
+      <p id="authSubtitle" class="text-gray-500 text-sm">Ingresa tus credenciales</p>
     </div>
 
-    <!-- Formulario de login -->
     <form id="loginForm">
-
-      <!-- Campo correo electrónico -->
       <div class="mb-5">
-        <label class="text-sm font-semibold text-gray-600">Correo electrónico</label>
+        <label class="text-sm font-semibold text-gray-600">Nombre de usuario</label>
         <input
-          type="email"
-          placeholder="usuario@empresa.com"
+          id="username"
+          type="text"
+          required
+          placeholder="Ej: admin_rh"
           class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
         >
       </div>
 
-      <!-- Campo contraseña -->
       <div class="mb-6">
         <label class="text-sm font-semibold text-gray-600">Contraseña</label>
         <input
+          id="password"
           type="password"
+          required
           placeholder="********"
           class="w-full mt-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400"
         >
       </div>
 
-      <!-- Botón de ingresar -->
       <button
+        id="btnSubmit"
         type="submit"
-        class="w-full bg-orange-500 text-white p-3 rounded-lg font-semibold hover:bg-orange-600 transition"
+        class="w-full bg-orange-500 text-white p-3 rounded-lg font-semibold hover:bg-orange-600 transition shadow-lg"
       >
-        Ingresar
+        Ingresar al Sistema
       </button>
-
     </form>
 
-    <!-- Enlace de recuperación de contraseña -->
-    <div class="mt-6 text-center text-sm text-gray-500">
-      ¿Olvidaste tu contraseña?
+    <div class="mt-6 text-center text-sm">
+      <span id="toggleText" class="text-gray-500">¿No tienes cuenta?</span>
+      <a href="#" id="toggleAuth" class="text-orange-600 font-bold hover:underline ml-1 cursor-pointer">Regístrate aquí</a>
     </div>
 
+    <!-- Mensajes de estado -->
+    <div id="msgError" class="hidden mt-4 p-3 bg-red-100 text-red-700 text-xs rounded-lg text-center font-medium">
+      Credenciales incorrectas.
+    </div>
+    <div id="msgSuccess" class="hidden mt-4 p-3 bg-green-100 text-green-700 text-xs rounded-lg text-center font-medium">
+      ¡Registro exitoso! Ahora puedes ingresar.
+    </div>
   </div>
 
-  <!-- Script de envío de formulario -->
   <script>
-    // Evita que el formulario recargue la página
-    // Redirige al dashboard (index.html) al hacer submit
-    document.getElementById("loginForm").addEventListener("submit", function(e){
-      e.preventDefault();
-      // Aquí luego se puede integrar autenticación real con backend
-      window.location.href = "index.html";
-    });
-  </script>
+    // Lógica visual para cambiar entre Login y Registro
+    let modoRegistro = false;
+    const authTitle = document.getElementById('authTitle');
+    const authSubtitle = document.getElementById('authSubtitle');
+    const btnSubmit = document.getElementById('btnSubmit');
+    const toggleText = document.getElementById('toggleText');
+    const toggleAuth = document.getElementById('toggleAuth');
+    const loginForm = document.getElementById('loginForm');
+    const msgError = document.getElementById('msgError');
+    const msgSuccess = document.getElementById('msgSuccess');
 
+    // Cambiar entre modo login y registro
+    toggleAuth.addEventListener('click', (e) => {
+      e.preventDefault();
+      modoRegistro = !modoRegistro;
+      msgError.classList.add('hidden');
+      msgSuccess.classList.add('hidden');
+
+      if (modoRegistro) {
+        authTitle.innerText = "Crear Cuenta";
+        authSubtitle.innerText = "Regístrate para acceder al panel";
+        btnSubmit.innerText = "Registrarme";
+        toggleText.innerText = "¿Ya tienes cuenta?";
+        toggleAuth.innerText = "Inicia sesión";
+      } else {
+        authTitle.innerText = "Sistema RH";
+        authSubtitle.innerText = "Ingresa tus credenciales";
+        btnSubmit.innerText = "Ingresar al Sistema";
+        toggleText.innerText = "¿No tienes cuenta?";
+        toggleAuth.innerText = "Regístrate aquí";
+      }
+    });
+
+    // Lógica de Autenticación
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      
+      // Obtener usuarios de la base de datos local (localStorage)
+      let usuarios = JSON.parse(localStorage.getItem('usuariosDB')) || [];
+
+      if (modoRegistro) {
+        // --- PROCESO DE REGISTRO ---
+        const existe = usuarios.find(u => u.username.toLowerCase() === username.toLowerCase());
+        
+        if (existe) {
+          showError("El nombre de usuario ya existe.");
+          return;
+        }
+
+        const nuevoUsuario = {
+          username: username,
+          password: password,
+          rol: username.toLowerCase().includes('admin') ? 'admin' : 'empleado'
+        };
+
+        usuarios.push(nuevoUsuario);
+        localStorage.setItem('usuariosDB', JSON.stringify(usuarios));
+        
+        showSuccess();
+        // Cambiar automáticamente a modo login después de registrar
+        setTimeout(() => toggleAuth.click(), 1500);
+        
+      } else {
+        // --- PROCESO DE LOGIN ---
+        const userFound = usuarios.find(u => u.username === username && u.password === password);
+
+        if (userFound) {
+          // Guardar sesión activa
+          localStorage.setItem('usuarioRH', JSON.stringify({
+            username: userFound.username,
+            rol: userFound.rol
+          }));
+          
+          // Redirigir al sistema principal
+          window.location.href = "index.html";
+        } else {
+          showError("Usuario o contraseña incorrectos.");
+        }
+      }
+    });
+
+    function showError(txt) {
+      msgError.innerText = txt;
+      msgError.classList.remove('hidden');
+      msgSuccess.classList.add('hidden');
+    }
+
+    function showSuccess() {
+      msgSuccess.classList.remove('hidden');
+      msgError.classList.add('hidden');
+      loginForm.reset();
+    }
+  </script>
 </body>
 </html>
