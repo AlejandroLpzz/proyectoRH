@@ -432,7 +432,55 @@ async function cargarNomina() {
     console.error("Error al cargar nómina:", e);
   }
 }
+const btnGuardarNomina = document.getElementById("guardarNomina");
+if (btnGuardarNomina) {
+  btnGuardarNomina.onclick = async () => {
+    // 1. Capturamos los valores del modal
+    const empleado = document.getElementById("nomEmpleado").value;
+    const departamento = document.getElementById("nomDepartamento").value;
+    const monto = parseFloat(document.getElementById("nomMonto").value);
+    const estado = document.getElementById("nomEstado").value;
 
+    // 2. Validación: Asegurarnos de que no envíe campos vacíos
+    if (!empleado || !departamento || isNaN(monto)) {
+      return alert("Por favor llena todos los campos numéricos y de texto correctamente.");
+    }
+
+    // 3. Preparamos el paquete de datos
+    const datosPago = { 
+        empleado: empleado, 
+        departamento: departamento, 
+        monto: monto, 
+        estado: estado,
+        fecha: new Date().toISOString() // Añadimos la fecha actual automáticamente
+    };
+
+    try {
+      // 4. Enviamos a la base de datos (Backend)
+      const res = await fetch(`${API_BASE}/nomina`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(datosPago),
+      });
+
+      if (res.ok) {
+        // 5. Si todo salió bien, cerramos modal y recargamos tabla
+        document.getElementById("modalNomina").style.display = "none";
+        
+        // Mostrar alerta visual (puedes usar un div bonito en lugar de alert si prefieres)
+        alert("✅ Pago registrado exitosamente");
+        
+        // Recargar los números y la tabla
+        cargarNomina();
+      } else {
+        alert("Error al registrar el pago en el servidor.");
+      }
+    } catch (e) {
+      console.error("Error al guardar nómina:", e);
+      alert("Error de conexión con la base de datos.");
+    }
+  };
+}
 // ==========================================
 // FUNCIONES AUXILIARES (AGREGAR O REEMPLAZAR)
 // ==========================================

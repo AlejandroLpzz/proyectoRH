@@ -11,7 +11,6 @@ const {
 // Definimos las rutas
 router.get('/', obtenerNomina);
 router.post('/', crearNomina);
-// 👇 TIENES QUE TENER ESTA LÍNEA 👇
 router.delete('/:id', eliminarNomina);
 
 module.exports = router;

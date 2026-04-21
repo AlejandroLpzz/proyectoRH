@@ -2,136 +2,207 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema RH</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema RH - Panel Principal</title>
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   
-  <!-- Estilos personalizados -->
+  <!-- Fuente Inter para un look moderno -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Estilos Personalizados -->
   <link rel="stylesheet" href="css/estilos.css">
+  
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    /* Estilización sutil del scrollbar directamente para carga rápida */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+  </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex">
 
-  <!-- Contenedor principal: sidebar + contenido -->
-  <div class="flex h-screen">
+  <!-- ========================================== -->
+  <!-- SIDEBAR (Contenedor Dinámico)              -->
+  <!-- ========================================== -->
+  <div id="sidebar-container" class="h-full"></div>
 
-    <!-- Sidebar cargado dinámicamente con JS -->
-    <div id="sidebar-container"></div>
+  <!-- ========================================== -->
+  <!-- CONTENIDO PRINCIPAL                        -->
+  <!-- ========================================== -->
+  <main class="flex-1 flex flex-col overflow-hidden">
 
-    <!-- Contenido principal -->
-    <main class="flex-1">
+    <!-- Barra Superior (Header) -->
+    <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-10">
+      <div class="flex items-center gap-2">
+        <span class="text-slate-400 text-sm">Panel</span>
+        <span class="text-slate-300">/</span>
+        <span class="font-medium text-slate-600 text-sm">Dashboard General</span>
+      </div>
 
-      <!-- Barra superior -->
-      <header class="bg-white p-4 border-b flex justify-between items-center">
-
-        <!-- Campo de búsqueda -->
-        <input 
-          type="text"
-          placeholder="Buscar..."
-          class="border p-2 rounded w-1/3"
-        >
-
-        <!-- Información del usuario -->
-        <div id="userInfo" class="flex items-center gap-3">
-
-          <!-- Nombre del usuario (rellenado por backend) -->
-          <div class="text-sm text-gray-600">
-            <!-- backend insertará nombre -->
+      <!-- Información del Usuario -->
+      <div id="userInfo" class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <div class="text-sm font-bold text-slate-700" id="nombreUsuarioHeader">
+             <!-- app.js insertará el nombre aquí -->
           </div>
-
-          <!-- Avatar -->
-          <div class="w-8 h-8 bg-gray-300 rounded-full"></div>
-
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Administrador</div>
+        </div>
+        
+        <!-- Avatar Estilizado -->
+        <div class="w-9 h-9 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold shadow-md shadow-indigo-100">
+          A
         </div>
 
-      </header>
+        <!-- Botón Salir -->
+        <button onclick="cerrarSesion()" class="ml-2 p-2 text-slate-400 hover:text-red-500 transition-colors" title="Cerrar Sesión">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </header>
 
-      <!-- Sección principal del dashboard -->
-      <section class="p-6">
+    <!-- Área de Contenido con Scroll -->
+    <div class="flex-1 overflow-y-auto p-8">
+      
+      <!-- Bienvenida -->
+      <div class="mb-8">
+        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Resumen de Gestión</h1>
+        <p class="text-slate-500 text-sm mt-1">Monitoreo en tiempo real de la plantilla y operaciones.</p>
+      </div>
 
-        <!-- Métricas principales -->
-        <div class="grid grid-cols-4 gap-6 mb-6">
-
-          <!-- Total de empleados -->
-          <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-gray-500 text-sm">Total de empleados</h2>
-            <p id="totalEmpleados" class="text-2xl font-semibold mt-2">--</p>
+      <!-- Métricas Principales -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        
+        <!-- Total de empleados -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+              </svg>
+            </div>
           </div>
-
-          <!-- Total de departamentos -->
-          <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-gray-500 text-sm">Departamentos</h2>
-            <p id="totalDepartamentos" class="text-2xl font-semibold mt-2">--</p>
-          </div>
-
-          <!-- Nómina mensual -->
-          <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-gray-500 text-sm">Nómina mensual</h2>
-            <p id="nominaMensual" class="text-2xl font-semibold mt-2">--</p>
-          </div>
-
-          <!-- Contrataciones del mes -->
-          <div class="bg-white p-4 rounded shadow">
-            <h2 class="text-gray-500 text-sm">Contrataciones este mes</h2>
-            <p id="contratacionesMes" class="text-2xl font-semibold mt-2">--</p>
-          </div>
-
+          <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Empleados</h2>
+          <p id="totalEmpleados" class="text-3xl font-bold text-slate-900 mt-1">--</p>
         </div>
 
-        <!-- Actividad reciente y alertas -->
-        <div class="grid grid-cols-2 gap-6">
-
-          <!-- Actividad reciente -->
-          <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Actividad reciente</h3>
-            <ul id="actividadReciente" class="space-y-3 text-sm text-gray-600">
-              <!-- backend insertará actividades -->
-            </ul>
+        <!-- Departamentos -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
+              </svg>
+            </div>
           </div>
-
-          <!-- Alertas del sistema -->
-          <div class="bg-white p-6 rounded shadow">
-            <h3 class="text-lg font-semibold mb-4">Alertas del sistema</h3>
-            <ul id="alertasSistema" class="space-y-3 text-sm text-gray-600">
-              <!-- backend insertará alertas -->
-            </ul>
-          </div>
-
+          <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest">Departamentos</h2>
+          <p id="totalDepartamentos" class="text-3xl font-bold text-slate-900 mt-1">--</p>
         </div>
 
-        <!-- Accesos rápidos a secciones -->
-        <div class="grid grid-cols-3 gap-6 mt-6">
-
-          <!-- Gestión de empleados -->
-          <a href="empleados.html" class="bg-white p-6 rounded shadow hover:bg-gray-50">
-            <h3 class="font-semibold mb-2">Gestión de empleados</h3>
-            <p class="text-sm text-gray-500">Administrar personal y roles</p>
-          </a>
-
-          <!-- Departamentos -->
-          <a href="departamentos.html" class="bg-white p-6 rounded shadow hover:bg-gray-50">
-            <h3 class="font-semibold mb-2">Departamentos</h3>
-            <p class="text-sm text-gray-500">Organizar áreas de trabajo</p>
-          </a>
-
-          <!-- Gestión de nómina -->
-          <a href="nomina.html" class="bg-white p-6 rounded shadow hover:bg-gray-50">
-            <h3 class="font-semibold mb-2">Gestión de nómina</h3>
-            <p class="text-sm text-gray-500">Control de pagos y salarios</p>
-          </a>
-
+        <!-- Nómina -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+          <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest">Nómina Mensual</h2>
+          <p id="nominaMensual" class="text-3xl font-bold text-slate-900 mt-1">--</p>
         </div>
 
-      </section>
+        <!-- Contrataciones -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-between mb-4">
+            <div class="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
+          <h2 class="text-slate-400 text-xs font-bold uppercase tracking-widest">Contrataciones</h2>
+          <p id="contratacionesMes" class="text-3xl font-bold text-slate-900 mt-1">--</p>
+        </div>
 
-    </main>
+      </div>
 
-  </div>
+      <!-- Actividad y Alertas -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+
+        <!-- Actividad Reciente -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-slate-800">Actividad reciente</h3>
+            <span class="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded">Actualizado ahora</span>
+          </div>
+          <ul id="actividadReciente" class="space-y-4">
+            <!-- app.js insertará actividades aquí -->
+          </ul>
+        </div>
+
+        <!-- Alertas -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-bold text-slate-800">Alertas del sistema</h3>
+            <span class="text-xs font-medium text-red-600 bg-red-50 px-2 py-1 rounded">Prioridad alta</span>
+          </div>
+          <ul id="alertasSistema" class="space-y-4">
+            <!-- app.js insertará alertas aquí -->
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Accesos Rápidos (Botones Estilizados Sin Emojis) -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+        <a href="empleados.html" class="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50 transition-all duration-300">
+          <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h3 class="font-bold text-slate-800 mb-1">Gestión de empleados</h3>
+          <p class="text-sm text-slate-400">Administrar personal y roles</p>
+        </a>
+
+        <a href="departamentos.html" class="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50 transition-all duration-300">
+          <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1" />
+            </svg>
+          </div>
+          <h3 class="font-bold text-slate-800 mb-1">Departamentos</h3>
+          <p class="text-sm text-slate-400">Organizar áreas de trabajo</p>
+        </a>
+
+        <a href="nomina.html" class="group bg-white p-6 rounded-2xl border border-slate-200 hover:border-indigo-300 hover:shadow-lg hover:shadow-indigo-50 transition-all duration-300">
+          <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center mb-3 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="font-bold text-slate-800 mb-1">Gestión de nómina</h3>
+          <p class="text-sm text-slate-400">Control de pagos y salarios</p>
+        </a>
+
+      </div>
+
+    </div>
+
+  </main>
 
   <!-- Scripts -->
-  <script src="js/menu.js"></script> <!-- Manejo del sidebar y marcado de página activa -->
-  <script src="js/app.js"></script>  <!-- Carga de métricas y datos dinámicos -->
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
 
 </body>
 </html>

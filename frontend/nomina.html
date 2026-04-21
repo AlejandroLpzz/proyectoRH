@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Nómina - Sistema RH</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/estilos.css">
@@ -10,48 +11,54 @@
 <body class="bg-gray-100">
 
   <div class="flex h-screen">
+    <!-- Contenedor del Sidebar (inyectado por menu.js) -->
     <div id="sidebar-container"></div>
 
-    <main class="flex-1 overflow-y-auto">
-      <header class="bg-white p-4 border-b flex justify-between items-center sticky top-0 z-10 shadow-sm">
+    <main class="flex-1 flex flex-col overflow-hidden">
+      <!-- Header Principal -->
+      <header class="bg-white p-4 border-b flex justify-between items-center sticky top-0 z-10 shadow-sm shrink-0">
         <div>
           <h1 class="text-xl font-semibold text-gray-800">Gestión de Nómina</h1>
           <p class="text-gray-500 text-sm">Control y administración de pagos mensuales</p>
         </div>
 
         <div class="flex gap-2">
-          <button onclick="prepararNuevaNomina()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-md">
+          <button onclick="prepararNuevaNomina()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition shadow-md font-medium">
             + Generar Nueva Nómina
           </button>
-          <button onclick="window.print()" class="border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 font-medium">
+          <button onclick="window.print()" class="border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 font-medium transition">
             Exportar reporte
           </button>
         </div>
       </header>
 
-      <div id="modalNomina" style="display:none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-2xl w-96">
-          <h2 id="tituloModalNomina" class="text-lg font-bold mb-4 text-gray-800 border-b pb-2">Registrar Pago</h2>
+      <!-- Modal para Registro/Edición de Pago -->
+      <div id="modalNomina" style="display:none;" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white p-6 rounded-xl shadow-2xl w-full max-w-md transform transition-all">
+          <div class="flex justify-between items-center mb-5 border-b pb-3">
+            <h2 id="tituloModalNomina" class="text-xl font-bold text-gray-800">Registrar Pago</h2>
+            <button onclick="document.getElementById('modalNomina').style.display='none'" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+          </div>
       
           <div class="space-y-4">
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase">Empleado</label>
-              <select id="nomEmpleado" class="border w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white"></select>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Empleado</label>
+              <select id="nomEmpleado" class="border border-gray-300 w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white"></select>
             </div>
       
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase">Departamento</label>
-              <select id="nomDepartamento" class="border w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white"></select>
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Departamento</label>
+              <select id="nomDepartamento" class="border border-gray-300 w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white"></select>
             </div>
       
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase">Monto a Pagar ($)</label>
-              <input id="nomMonto" type="number" placeholder="0.00" class="border w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 font-mono text-blue-600">
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Monto a Pagar ($)</label>
+              <input id="nomMonto" type="number" placeholder="0.00" class="border border-gray-300 w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 font-mono text-blue-600 font-bold">
             </div>
       
             <div>
-              <label class="block text-xs font-bold text-gray-500 uppercase">Estado del Pago</label>
-              <select id="nomEstado" class="border w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white cursor-pointer">
+              <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Estado del Pago</label>
+              <select id="nomEstado" class="border border-gray-300 w-full p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-400 bg-white cursor-pointer">
                 <option value="Pendiente">🟡 Pendiente</option>
                 <option value="Pagado">🟢 Pagado</option>
                 <option value="Rechazado">🔴 Rechazado</option>
@@ -67,32 +74,35 @@
         </div>
       </div>
 
-      <section class="p-6">
+      <!-- Contenido Scrollable -->
+      <section class="p-6 overflow-y-auto">
 
+        <!-- Tarjetas de Métricas Superiores -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
-            <h3 class="text-gray-400 text-xs font-bold uppercase">Total Egresos Mes</h3>
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Total Egresos Mes</h3>
             <p id="totalNominaMes" class="text-3xl font-black mt-2 text-gray-800">$0</p>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500">
-            <h3 class="text-gray-400 text-xs font-bold uppercase">Pagos en Espera</h3>
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Pagos en Espera</h3>
             <p id="pagosPendientes" class="text-3xl font-black mt-2 text-gray-800">0</p>
           </div>
           <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500">
-            <h3 class="text-gray-400 text-xs font-bold uppercase">Transacciones Exitosas</h3>
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Transacciones Exitosas</h3>
             <p id="empleadosPagados" class="text-3xl font-black mt-2 text-gray-800">0</p>
           </div>
         </div>
 
+        <!-- Sección de Tabla con Filtros -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <div class="p-5 border-b bg-gray-50 flex flex-wrap justify-between items-center gap-4">
             <h3 class="text-lg font-bold text-gray-700 italic">Pagos Recientes</h3>
-            <div class="flex gap-3">
+            <div class="flex flex-wrap gap-3">
               <div class="relative">
-                <input id="busquedaNomina" type="text" placeholder="Buscar empleado..." class="border p-2 pl-8 rounded-lg text-sm w-64 outline-none focus:ring-2 focus:ring-blue-300">
-                <span class="absolute left-2 top-2 text-gray-400">🔍</span>
+                <input id="busquedaNomina" type="text" placeholder="Buscar empleado..." class="border border-gray-200 p-2 pl-8 rounded-lg text-sm w-64 outline-none focus:ring-2 focus:ring-blue-300 transition-all">
+                <span class="absolute left-2.5 top-2.5 text-gray-400 text-xs">🔍</span>
               </div>
-              <select id="filtroEstado" class="border p-2 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-300">
+              <select id="filtroEstado" class="border border-gray-200 p-2 rounded-lg text-sm bg-white outline-none focus:ring-2 focus:ring-blue-300 cursor-pointer transition-all">
                 <option value="Todos">Todos los estados</option>
                 <option value="Pagado">Pagado</option>
                 <option value="Pendiente">Pendiente</option>
@@ -114,6 +124,7 @@
                 </tr>
               </thead>
               <tbody id="tablaNomina" class="divide-y divide-gray-100">
+                <!-- Estado de Carga -->
                 <tr>
                   <td colspan="6" class="p-12 text-center text-gray-400 italic">
                     <div class="flex flex-col items-center gap-2">
@@ -127,40 +138,42 @@
           </div>
         </div>
 
+        <!-- Estadísticas Secundarias -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
             <div class="bg-blue-50 p-3 rounded-full text-xl text-blue-500">📊</div>
             <div>
-              <h3 class="text-gray-400 text-[10px] font-bold uppercase">Promedio de Pago</h3>
+              <h3 class="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Promedio de Pago</h3>
               <p id="promedioPago" class="text-xl font-bold text-gray-800">$0</p>
             </div>
           </div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
             <div class="bg-purple-50 p-3 rounded-full text-xl text-purple-500">📋</div>
             <div>
-              <h3 class="text-gray-400 text-[10px] font-bold uppercase">Pagos Procesados</h3>
+              <h3 class="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Pagos Procesados</h3>
               <p id="pagosProcesados" class="text-xl font-bold text-gray-800">--</p>
             </div>
           </div>
-          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4">
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition">
             <div class="bg-red-50 p-3 rounded-full text-xl text-red-500">⚠️</div>
             <div>
-              <h3 class="text-gray-400 text-[10px] font-bold uppercase">Incidencias / Rechazos</h3>
+              <h3 class="text-gray-400 text-[10px] font-bold uppercase tracking-tighter">Incidencias / Rechazos</h3>
               <p id="pagosRechazados" class="text-xl font-bold text-red-600">0</p>
             </div>
           </div>
         </div>
 
-        <div id="alertaCierre" class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-xl shadow-sm mt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <!-- Banner de Cierre (Dinámico según lógica de app.js) -->
+        <div id="alertaCierre" class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-xl shadow-sm mt-8 flex flex-col md:flex-row justify-between items-center gap-4 transition-all">
           <div>
-            <h3 class="font-bold text-yellow-800 flex items-center gap-2">
+            <h3 class="font-bold text-yellow-800 flex items-center gap-2 text-lg">
               📅 Próximo cierre de nómina
             </h3>
             <p class="text-sm text-yellow-700 mt-1">
-              Faltan <span id="contadorDias" class="font-black text-orange-600">3 días</span> para procesar la dispersión bancaria del periodo.
+              Faltan <span id="contadorDias" class="font-black text-orange-600">3 días</span> para procesar la dispersión bancaria del periodo actual.
             </p>
           </div>
-          <button onclick="filtrarSoloPendientes()" class="bg-yellow-500 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-yellow-600 transition shadow-lg text-sm">
+          <button onclick="filtrarSoloPendientes()" class="bg-yellow-500 text-white px-6 py-2.5 rounded-lg font-bold hover:bg-yellow-600 transition shadow-lg text-sm whitespace-nowrap">
             URGENTE: Ver pagos pendientes
           </button>
         </div>
@@ -169,10 +182,12 @@
     </main>
   </div>
 
+  <!-- Scripts del Sistema -->
   <script src="js/menu.js"></script>
   <script src="js/app.js"></script>
 
   <script>
+    // Filtros de UI locales (Independientes de la carga de datos)
     const inputBusqueda = document.getElementById("busquedaNomina");
     const selectFiltro = document.getElementById("filtroEstado");
 
@@ -195,8 +210,10 @@
     }
 
     function filtrarSoloPendientes() {
-        selectFiltro.value = "Pendiente";
-        aplicarFiltros();
+        if(selectFiltro) {
+          selectFiltro.value = "Pendiente";
+          aplicarFiltros();
+        }
     }
 
     inputBusqueda?.addEventListener("input", aplicarFiltros);
