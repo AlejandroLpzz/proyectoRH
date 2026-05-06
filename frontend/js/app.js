@@ -17,6 +17,22 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+/** * FUNCIÓN DE VALIDACIÓN (Añadida para robustez)
+ * Verifica si un valor ya existe para evitar duplicados antes de enviar al backend
+ */
+async function validarDuplicado(endpoint, campo, valor, idActual = null) {
+  try {
+    const res = await fetch(`${API_BASE}/${endpoint}`);
+    const datos = await res.json();
+    return datos.some(item => 
+      item[campo].trim().toLowerCase() === valor.trim().toLowerCase() && 
+      item._id !== idActual
+    );
+  } catch (e) {
+    return false;
+  }
+}
+
 // FUNCIÓN PARA RELLENAR EL SELECTOR DE DEPARTAMENTOS
 async function actualizarSelectDepartamentos() {
   const select = document.getElementById("departamento");
@@ -139,12 +155,16 @@ async function prepararEdicion(id, nombre, depto, rol) {
 const btnGuardar = document.getElementById("guardarEmpleado");
 if (btnGuardar) {
   btnGuardar.onclick = async () => {
-    const nombre = document.getElementById("nombre").value;
+    const nombre = document.getElementById("nombre").value.trim();
     const departamento = document.getElementById("departamento").value;
-    const rol = document.getElementById("rol").value;
+    const rol = document.getElementById("rol").value.trim();
 
     if (!nombre || !departamento || !rol)
       return alert("Por favor llena todos los campos");
+
+    // VALIDACIÓN: Evitar nombres duplicados
+    const esDuplicado = await validarDuplicado("empleados", "nombre", nombre, idEditando);
+    if (esDuplicado) return alert("Ya existe un empleado con ese nombre.");
 
     const datosEmp = { nombre, departamento, rol };
     let url = `${API_BASE}/empleados`;
@@ -284,13 +304,17 @@ function prepararEdicionDepto(id, nombre, responsable) {
 const btnGuardarDepto = document.getElementById("guardarDepto");
 if (btnGuardarDepto) {
   btnGuardarDepto.onclick = async () => {
-    const nombre = document.getElementById("nombreDepto").value;
-    const responsable = document.getElementById("responsableDepto").value;
+    const nombre = document.getElementById("nombreDepto").value.trim();
+    const responsable = document.getElementById("responsableDepto").value.trim();
     const estado = document.getElementById("estadoDepto")
       ? document.getElementById("estadoDepto").value
       : "Activo";
 
     if (!nombre) return alert("El nombre del departamento es obligatorio");
+
+    // VALIDACIÓN: Evitar nombres de departamentos repetidos
+    const esDuplicado = await validarDuplicado("departamentos", "nombre", nombre, idDeptoEditando);
+    if (esDuplicado) return alert("Este departamento ya existe.");
 
     const datos = { nombre, responsable, estado };
     let url = `${API_BASE}/departamentos`;
@@ -313,7 +337,6 @@ if (btnGuardarDepto) {
         );
         cargarDepartamentos();
       } else {
-        // NUEVO: Esto nos avisará si el backend rechaza la actualización
         alert(
           "El servidor no pudo actualizar. Revisa la consola para más detalles.",
         );
@@ -414,7 +437,6 @@ async function cargarNomina() {
                 </tr>`;
     });
 
-    // --- MANTENEMOS TODA TU LÓGICA DE TARJETAS ---
     if (document.getElementById("pagosPendientes")) document.getElementById("pagosPendientes").innerText = enEspera;
     if (document.getElementById("pagosRechazados")) document.getElementById("pagosRechazados").innerText = rechazos;
     if (document.getElementById("empleadosPagados")) document.getElementById("empleadosPagados").innerText = procesados;
@@ -441,10 +463,13 @@ if (btnGuardarNomina) {
     const monto = parseFloat(document.getElementById("nomMonto").value);
     const estado = document.getElementById("nomEstado").value;
 
-    // 2. Validación: Asegurarnos de que no envíe campos vacíos
+    // 2. Validación
     if (!empleado || !departamento || isNaN(monto)) {
       return alert("Por favor llena todos los campos numéricos y de texto correctamente.");
     }
+    
+    // VALIDACIÓN DE ROBUSTEZ: Monto positivo
+    if (monto <= 0) return alert("El monto debe ser mayor a cero.");
 
     // 3. Preparamos el paquete de datos
     const datosPago = { 
@@ -452,11 +477,10 @@ if (btnGuardarNomina) {
         departamento: departamento, 
         monto: monto, 
         estado: estado,
-        fecha: new Date().toISOString() // Añadimos la fecha actual automáticamente
+        fecha: new Date().toISOString() 
     };
 
     try {
-      // 4. Enviamos a la base de datos (Backend)
       const res = await fetch(`${API_BASE}/nomina`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -464,13 +488,8 @@ if (btnGuardarNomina) {
       });
 
       if (res.ok) {
-        // 5. Si todo salió bien, cerramos modal y recargamos tabla
         document.getElementById("modalNomina").style.display = "none";
-        
-        // Mostrar alerta visual (puedes usar un div bonito en lugar de alert si prefieres)
         alert("✅ Pago registrado exitosamente");
-        
-        // Recargar los números y la tabla
         cargarNomina();
       } else {
         alert("Error al registrar el pago en el servidor.");
@@ -482,7 +501,7 @@ if (btnGuardarNomina) {
   };
 }
 // ==========================================
-// FUNCIONES AUXILIARES (AGREGAR O REEMPLAZAR)
+// FUNCIONES AUXILIARES
 // ==========================================
 
 function obtenerClaseEstado(estado) {
@@ -495,7 +514,6 @@ function obtenerClaseEstado(estado) {
 }
 
 function verificarCierreNomina(pendientes, procesados) {
-  // Usamos el ID "alertaCierre" que tienes al final de tu HTML
   const contenedor = document.getElementById("alertaCierre");
   if (!contenedor) return;
 
@@ -689,23 +707,8 @@ async function prepararNuevaNomina() {
     }
 }
 
-// borarr nomina
+// borarr nomina (mantenemos las dos versiones que tenías por si acaso)
 async function eliminarNomina(id) {
-  if (!confirm("¿Estás seguro de eliminar este registro de pago?")) return;
-
-  try {
-    const res = await fetch(`${API_BASE}/nomina/${id}`, { method: "DELETE" });
-    if (res.ok) {
-      cargarNomina(); 
-    }
-  } catch (e) {
-    alert("No se pudo eliminar la nómina");
-  }
-}
-
-//eliminar nomina
-async function eliminarNomina(id) {
-
     console.log("El botón mandó a borrar el ID:", id);
     if (!confirm("¿Estás seguro de que deseas eliminar este registro de pago?")) return;
 
