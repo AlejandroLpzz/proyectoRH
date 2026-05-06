@@ -560,11 +560,10 @@ async function cargarMetricasDashboard() {
       });
     }
 
-    // Alertas del Sistema
+    // alertas del Sistema
     const listaAlertas = document.getElementById("alertasSistema");
     listaAlertas.innerHTML = "";
     let hayAlertas = false;
-
     const pagosPendientes = nomina.filter(
       (p) => p.estado === "Pendiente",
     ).length;
@@ -575,7 +574,6 @@ async function cargarMetricasDashboard() {
                 </li>`;
       hayAlertas = true;
     }
-
     const deptosInactivos = deptos.filter(
       (d) => d.estado === "Inactivo",
     ).length;
@@ -586,7 +584,6 @@ async function cargarMetricasDashboard() {
                 </li>`;
       hayAlertas = true;
     }
-
     if (!hayAlertas) {
       listaAlertas.innerHTML =
         "<li class='text-green-600 font-medium'>Todo está en orden. Sin alertas.</li>";
@@ -596,10 +593,7 @@ async function cargarMetricasDashboard() {
   }
 }
 
-// ==========================================
-// 6. UTILIDADES: BUSCADOR Y GLOBALES
-// ==========================================
-
+//buscar empleado
 const inputBuscar = document.getElementById("buscarEmpleado");
 if (inputBuscar) {
   inputBuscar.addEventListener("input", (e) => {
@@ -638,19 +632,19 @@ window.onclick = function (event) {
   }
 };
 
+//crear nomina
 async function prepararNuevaNomina() {
     const modal = document.getElementById("modalNomina");
     if (!modal) return;
 
-    // Abrimos el modal
+    // abrimos el modal
     modal.style.display = "flex";
 
     try {
-        // 👇 AQUÍ ESTÁ LA MAGIA: Usamos los IDs exactos de tu HTML 👇
         const selectEmp = document.getElementById("nomEmpleado");
         const selectDep = document.getElementById("nomDepartamento");
 
-        // Traemos la información del backend
+        // traemos la información del backend
         const [resEmp, resDep] = await Promise.all([
             fetch(`${API_BASE}/empleados`),
             fetch(`${API_BASE}/departamentos`)
@@ -659,7 +653,7 @@ async function prepararNuevaNomina() {
         const empleados = await resEmp.json();
         const departamentos = await resDep.json();
 
-        // Llenamos la lista de empleados
+        // llenamos lista de empleados
         if (selectEmp) {
             selectEmp.innerHTML = '<option value="">-- Seleccione Empleado --</option>';
             
@@ -667,12 +661,10 @@ async function prepararNuevaNomina() {
                 const option = document.createElement("option");
                 option.value = emp.nombre;
                 option.textContent = emp.nombre;
-                // Guardamos el departamento del empleado escondido aquí
                 option.dataset.depto = emp.departamento; 
                 selectEmp.appendChild(option);
             });
-
-            // Al cambiar de empleado, asignar su departamento automáticamente
+            //asignar departamento a empleado nuevo 
             selectEmp.onchange = function() {
                 const deptoAsignado = this.options[this.selectedIndex].dataset.depto;
                 if (selectDep && deptoAsignado) {
@@ -681,7 +673,7 @@ async function prepararNuevaNomina() {
             };
         }
 
-        // Llenamos la lista de departamentos
+        // llenamos la lista de departamentos
         if (selectDep) {
             selectDep.innerHTML = '<option value="">-- Seleccione Departamento --</option>';
             departamentos.forEach(dep => {
@@ -697,20 +689,21 @@ async function prepararNuevaNomina() {
     }
 }
 
-// 2. FUNCIÓN PARA BORRAR NÓMINA
+// borarr nomina
 async function eliminarNomina(id) {
   if (!confirm("¿Estás seguro de eliminar este registro de pago?")) return;
 
   try {
     const res = await fetch(`${API_BASE}/nomina/${id}`, { method: "DELETE" });
     if (res.ok) {
-      cargarNomina(); // Recargamos la tabla
+      cargarNomina(); 
     }
   } catch (e) {
     alert("No se pudo eliminar la nómina");
   }
 }
 
+//eliminar nomina
 async function eliminarNomina(id) {
 
     console.log("El botón mandó a borrar el ID:", id);
@@ -722,7 +715,6 @@ async function eliminarNomina(id) {
         });
 
         if (res.ok) {
-            // Si el servidor lo borró bien, refrescamos la tabla automáticamente
             cargarNomina(); 
         } else {
             alert("Error al intentar eliminar el registro.");
@@ -732,6 +724,18 @@ async function eliminarNomina(id) {
     }
 }
 
-// IMPORTANTE: Para que el HTML vea la función, agrégala a esta lista que ya tienes al final de tu app.js
 window.eliminarNomina = eliminarNomina;
 window.prepararNuevaNomina = prepararNuevaNomina;
+
+//cerrar sesion
+function cerrarSesion() {
+    // borrar datos de inicio de sesion
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // volver al login
+    window.location.href = "login.html"; 
+}
+
+// cerrar sesion
+window.cerrarSesion = cerrarSesion;

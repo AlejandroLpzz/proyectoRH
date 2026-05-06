@@ -1,5 +1,3 @@
-// menu.js
-
 // Cargar el contenido del sidebar desde un archivo HTML externo
 fetch("components/sidebar.html")
   .then(response => response.text()) // Obtener el HTML como texto

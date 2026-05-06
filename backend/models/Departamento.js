@@ -4,7 +4,7 @@ const DepartamentoSchema = new mongoose.Schema({
     nombre: { 
         type: String, 
         required: true, 
-        unique: true // Evita duplicados como "Marketing" dos veces
+        unique: true 
     },
     responsable: { 
         type: String, 

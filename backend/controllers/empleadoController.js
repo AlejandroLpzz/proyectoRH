@@ -1,4 +1,3 @@
-// controllers/empleadoController.js
 const Empleado = require('../models/Empleado');
 
 // Obtener todos los empleados

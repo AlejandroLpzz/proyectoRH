@@ -1,8 +1,7 @@
-// routes/empleados.js
 const express = require('express');
 const router = express.Router();
 
-// Importamos las funciones del controlador
+// importamos las funciones del controlador
 const { 
     obtenerEmpleados, 
     crearEmpleado, 
@@ -10,7 +9,7 @@ const {
     eliminarEmpleado 
 } = require('../controllers/empleadoController');
 
-// Definimos las rutas y les asignamos su "chef" (controlador)
+// Definimos las rutas y les asignamos su controlador
 router.get('/', obtenerEmpleados);
 router.post('/', crearEmpleado);
 router.put('/:id', actualizarEmpleado);

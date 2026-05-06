@@ -9,19 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Conexión a MongoDB
+// Conexion a MongoDB
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('✅ Conectado a MongoDB Atlas'))
     .catch(err => console.error('❌ Error de conexión:', err));
 
-// --- CONEXIÓN DE RUTAS (Aquí usamos la nueva estructura MVC) ---
+// --- CONEXIÓN DE RUTAS ---
 app.use('/api/empleados', require('./routes/empleado'));
 app.use('/api/departamentos', require('./routes/departamento'));
 app.use('/api/nomina', require('./routes/nomina'));
-
-// (Opcional) Puedes dejar tu ruta de prueba si la sigues usando
 app.get('/crear-datos-prueba', async (req, res) => {
-    // ... tu código de prueba ...
     res.send("Datos creados");
 });
 

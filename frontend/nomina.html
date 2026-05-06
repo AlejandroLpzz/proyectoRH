@@ -11,7 +11,7 @@
 <body class="bg-gray-100">
 
   <div class="flex h-screen">
-    <!-- Contenedor del Sidebar (inyectado por menu.js) -->
+    <!-- Contenedor del Sidebar -->
     <div id="sidebar-container"></div>
 
     <main class="flex-1 flex flex-col overflow-hidden">
@@ -160,7 +160,7 @@
           </div>
         </div>
 
-        <!-- Banner de Cierre (Dinámico según lógica de app.js) -->
+        <!-- Banner de Cierre -->
         <div id="alertaCierre" class="bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-yellow-400 p-6 rounded-xl shadow-sm mt-8 flex flex-col md:flex-row justify-between items-center gap-4 transition-all">
           <div>
             <h3 class="font-bold text-yellow-800 flex items-center gap-2 text-lg">
@@ -184,7 +184,7 @@
   <script src="js/app.js"></script>
 
   <script>
-    // Filtros de UI locales (Independientes de la carga de datos)
+    // Filtros de UI locales 
     const inputBusqueda = document.getElementById("busquedaNomina");
     const selectFiltro = document.getElementById("filtroEstado");
 

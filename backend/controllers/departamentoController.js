@@ -1,12 +1,11 @@
 const Departamento = require('../models/Departamento');
-const Empleado = require('../models/Empleado'); // Lo necesitamos para el conteo
+const Empleado = require('../models/Empleado');
 
 // Obtener departamentos con conteo de empleados
 const obtenerDepartamentos = async (req, res) => {
     try {
         const departamentos = await Departamento.find();
         
-        // Mapeamos para incluir el conteo de empleados
         const respuesta = await Promise.all(
             departamentos.map(async (dep) => {
                 const conteo = await Empleado.countDocuments({ departamento: dep.nombre });
@@ -53,5 +52,4 @@ const eliminarDepartamento = async (req, res) => {
     }
 };
 
-// No olvides agregarlas al module.exports al final del archivo
 module.exports = { obtenerDepartamentos, crearDepartamento, actualizarDepartamento, eliminarDepartamento };
