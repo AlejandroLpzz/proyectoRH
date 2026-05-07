@@ -13,6 +13,7 @@
     <div class="flex h-screen">
       <!-- Sidebar -->
       <div id="sidebar-container"></div>
+      
       <main class="flex-1 flex flex-col overflow-hidden">
         <header class="bg-white p-4 border-b flex justify-between items-center shrink-0">
           <div>
@@ -24,14 +25,14 @@
           <div class="flex gap-2">
             <button
               id="btnNuevoEmpleado"
-              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow-sm"
+              class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition shadow-sm font-medium"
             >
               + Nuevo Empleado
             </button>
           </div>
         </header>
 
-        <!-- Modal de Empleado -->
+        <!-- Modal de Empleado (Actualizado con campo Estado) -->
         <div
           id="modalEmpleado"
           style="display: none"
@@ -66,12 +67,24 @@
                 />
               </div>
 
-              <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Departamento</label>
-                <select
-                  id="departamento"
-                  class="border border-gray-300 w-full p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 outline-none appearance-none"
-                ></select>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Departamento</label>
+                  <select
+                    id="departamento"
+                    class="border border-gray-300 w-full p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 outline-none appearance-none"
+                  ></select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Estado</label>
+                  <select
+                    id="estadoEmpleado"
+                    class="border border-gray-300 w-full p-2.5 rounded-lg bg-white focus:ring-2 focus:ring-blue-400 outline-none appearance-none font-semibold"
+                  >
+                    <option value="Activo" class="text-green-600">Activo</option>
+                    <option value="Inactivo" class="text-red-600">Inactivo</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -105,57 +118,55 @@
         <section class="p-6 overflow-y-auto">
           <!-- Tarjetas de Métricas -->
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div class="bg-white p-4 rounded shadow">
-              <h3 class="text-gray-500 text-sm">Total empleados</h3>
-              <p id="totalEmpleados" class="text-2xl font-semibold mt-2 text-gray-800">--</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+              <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Total empleados</h3>
+              <p id="totalEmpleados" class="text-3xl font-black mt-2 text-gray-800">--</p>
             </div>
-            <div class="bg-white p-4 rounded shadow">
-              <h3 class="text-gray-500 text-sm">Activos</h3>
-              <p id="empleadosActivos" class="text-2xl font-semibold mt-2 text-green-600">--</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-green-500">
+              <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Activos</h3>
+              <p id="empleadosActivos" class="text-3xl font-black mt-2 text-green-600">--</p>
             </div>
-            <div class="bg-white p-4 rounded shadow">
-              <h3 class="text-gray-500 text-sm">Inactivos</h3>
-              <p id="empleadosInactivos" class="text-2xl font-semibold mt-2 text-red-600">--</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 border-l-4 border-l-red-500">
+              <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider">Inactivos</h3>
+              <p id="empleadosInactivos" class="text-3xl font-black mt-2 text-red-600">--</p>
             </div>
           </div>
 
           <!-- Filtros y Búsqueda -->
-          <div class="bg-white p-4 rounded shadow mb-6 flex flex-col md:flex-row justify-between gap-4">
-            <input
-              type="text"
-              placeholder="Buscar empleado..."
-              class="border border-gray-300 p-2 rounded w-full md:w-1/3 outline-none focus:border-blue-400"
-              id="buscarEmpleado"
-            />
+          <div class="bg-white p-4 rounded-xl shadow-sm mb-6 flex flex-col md:flex-row justify-between gap-4 border border-gray-100">
+            <div class="relative w-full md:w-1/3">
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  class="border border-gray-300 p-2.5 pl-10 rounded-lg w-full outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 transition-all"
+                  id="buscarEmpleado"
+                />
+                <span class="absolute left-3 top-3 text-gray-400">🔍</span>
+            </div>
             <div class="flex gap-2">
-              <button class="border border-gray-300 px-3 py-2 rounded text-gray-600 hover:bg-gray-50 text-sm">Departamento</button>
-              <button class="border border-gray-300 px-3 py-2 rounded text-gray-600 hover:bg-gray-50 text-sm">Estado</button>
-              <button class="bg-gray-200 px-3 py-2 rounded text-gray-700 hover:bg-gray-300 text-sm">Filtrar</button>
+              <button class="border border-gray-200 px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium transition">Filtrar</button>
+              <button onclick="location.reload()" class="bg-gray-100 px-4 py-2 rounded-lg text-gray-700 hover:bg-gray-200 text-sm font-medium transition">Actualizar</button>
             </div>
           </div>
 
           <!-- Tabla de Empleados -->
-          <div class="bg-white p-6 rounded shadow">
-            <div class="flex justify-between mb-4 items-center">
-              <h3 class="text-lg font-semibold text-gray-800">Lista de empleados</h3>
-              <div class="flex gap-2">
-                <button class="border border-gray-300 px-3 py-1 rounded text-sm text-gray-600 hover:bg-gray-50">Ordenar</button>
-                <button class="border border-gray-300 px-3 py-1 rounded text-sm text-gray-600 hover:bg-gray-50">Actualizar</button>
-              </div>
+          <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-5 border-b border-gray-50 flex justify-between items-center">
+              <h3 class="text-lg font-bold text-gray-800">Directorio de Colaboradores</h3>
             </div>
 
             <div class="overflow-x-auto">
               <table class="w-full">
                 <thead class="bg-gray-50">
-                  <tr class="text-gray-600 text-sm uppercase">
-                    <th class="p-3 text-left font-semibold">Empleado</th>
-                    <th class="p-3 text-left font-semibold">Departamento</th>
-                    <th class="p-3 text-left font-semibold">Rol</th>
-                    <th class="p-3 text-left font-semibold">Estado</th>
-                    <th class="p-3 text-right font-semibold">Acciones</th>
+                  <tr class="text-gray-400 text-[10px] uppercase tracking-widest">
+                    <th class="p-4 text-left font-bold">Empleado</th>
+                    <th class="p-4 text-left font-bold">Departamento</th>
+                    <th class="p-4 text-left font-bold">Rol / Puesto</th>
+                    <th class="p-4 text-left font-bold">Estado</th>
+                    <th class="p-4 text-right font-bold">Acciones</th>
                   </tr>
                 </thead>
-                <tbody id="tablaEmpleados" class="divide-y divide-gray-100">
+                <tbody id="tablaEmpleados" class="divide-y divide-gray-50">
                   <!-- Se llena dinámicamente con JS -->
                 </tbody>
               </table>
@@ -163,18 +174,18 @@
           </div>
 
           <!-- Métricas de Resumen Inferiores -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pb-6">
-            <div class="bg-white p-4 rounded shadow border-l-4 border-blue-500">
-              <h3 class="text-gray-600 text-sm">Contrataciones este mes</h3>
-              <p id="contratacionesMes" class="text-xl font-semibold mt-2 text-gray-800">--</p>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6 pb-10">
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-blue-500">
+              <h3 class="text-gray-500 text-xs font-bold uppercase">Nuevos este mes</h3>
+              <p id="contratacionesMes" class="text-2xl font-bold mt-1 text-gray-800">--</p>
             </div>
-            <div class="bg-white p-4 rounded shadow border-l-4 border-green-500">
-              <h3 class="text-gray-600 text-sm">Departamentos activos</h3>
-              <p id="departamentosActivos" class="text-xl font-semibold mt-2 text-gray-800">--</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-indigo-500">
+              <h3 class="text-gray-500 text-xs font-bold uppercase">Áreas Operativas</h3>
+              <p id="departamentosActivos" class="text-2xl font-bold mt-1 text-gray-800">--</p>
             </div>
-            <div class="bg-white p-4 rounded shadow border-l-4 border-gray-500">
-              <h3 class="text-gray-600 text-sm">Promedio de antigüedad</h3>
-              <p id="promedioAntiguedad" class="text-xl font-semibold mt-2 text-gray-800">--</p>
+            <div class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-orange-500">
+              <h3 class="text-gray-500 text-xs font-bold uppercase">Promedio Antigüedad</h3>
+              <p id="promedioAntiguedad" class="text-2xl font-bold mt-1 text-gray-800">--</p>
             </div>
           </div>
         </section>

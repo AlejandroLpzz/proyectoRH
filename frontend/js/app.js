@@ -75,98 +75,106 @@ if (btnNuevo) {
 // ==========================================
 
 async function cargarEmpleados() {
-  const tabla = document.getElementById("tablaEmpleados");
-  if (!tabla) return;
+    const tabla = document.getElementById("tablaEmpleados");
+    if (!tabla) return;
 
-  try {
-    const res = await fetch(`${API_BASE}/empleados`);
-    const datos = await res.json();
+    try {
+        const res = await fetch(`${API_BASE}/empleados`);
+        const datos = await res.json();
 
-    tabla.innerHTML = "";
-    datos.forEach((emp) => {
-      tabla.innerHTML += `
+        // --- CÁLCULO DE MÉTRICAS PARA LAS TARJETAS ---
+        const total = datos.length;
+        const activos = datos.filter(e => (e.estado || "Activo") === "Activo").length;
+        const inactivos = datos.filter(e => e.estado === "Inactivo").length;
+
+        // Actualizar los IDs que tienes en tu HTML
+        if (document.getElementById("totalEmpleados")) 
+            document.getElementById("totalEmpleados").innerText = total;
+        
+        if (document.getElementById("empleadosActivos")) 
+            document.getElementById("empleadosActivos").innerText = activos;
+            
+        if (document.getElementById("empleadosInactivos")) 
+            document.getElementById("empleadosInactivos").innerText = inactivos;
+
+        // Métricas inferiores (opcionales)
+        if (document.getElementById("contratacionesMes"))
+            document.getElementById("contratacionesMes").innerText = total;
+
+        // --- RENDERIZADO DE LA TABLA ---
+        tabla.innerHTML = "";
+        datos.forEach((emp) => {
+            const estado = emp.estado || "Activo";
+            // Estilos para el badge de la tabla
+            const claseBadge = estado === "Inactivo" 
+                ? "bg-red-100 text-red-700 border-red-200" 
+                : "bg-green-100 text-green-700 border-green-200";
+            
+            tabla.innerHTML += `
                 <tr class="border-t hover:bg-gray-50 transition">
-                    <td class="p-3">${emp.nombre}</td>
-                    <td class="p-3">${emp.departamento}</td>
-                    <td class="p-3">${emp.rol}</td>
-                    <td class="p-3">
-                        <span class="${emp.estado === "Inactivo" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"} px-2 py-1 rounded-full text-xs font-semibold">
-                            ${emp.estado || "Activo"}
+                    <td class="p-4">
+                        <div class="font-bold text-gray-800">${emp.nombre}</div>
+                    </td>
+                    <td class="p-4 text-gray-600">${emp.departamento}</td>
+                    <td class="p-4 text-gray-600">${emp.rol}</td>
+                    <td class="p-4">
+                        <span class="${claseBadge} px-3 py-1 rounded-full text-[10px] font-black border uppercase tracking-wider">
+                            ${estado}
                         </span>
                     </td>
-                    <td class="p-3 text-right">
-                        <button onclick="prepararEdicion('${emp._id}', '${emp.nombre}', '${emp.departamento}', '${emp.rol}')" class="text-blue-600 hover:underline mr-3 font-medium">Editar</button>
-                        <button onclick="eliminarEmpleado('${emp._id}')" class="text-red-600 hover:underline font-medium">Eliminar</button>
+                    <td class="p-4 text-right">
+                        <button onclick="prepararEdicion('${emp._id}', '${emp.nombre}', '${emp.departamento}', '${emp.rol}', '${estado}')" 
+                                class="text-blue-600 hover:text-blue-800 mr-4 font-bold text-sm">
+                            EDITAR
+                        </button>
+                        <button onclick="eliminarEmpleado('${emp._id}')" 
+                                class="text-red-500 hover:text-red-700 font-bold text-sm">
+                            ELIMINAR
+                        </button>
                     </td>
                 </tr>`;
-    });
-
-    // Actualizar métricas superiores si existen
-    if (document.getElementById("totalEmpleados"))
-      document.getElementById("totalEmpleados").innerText = datos.length;
-    if (document.getElementById("empleadosActivos")) {
-      const activos = datos.filter((e) => e.estado !== "Inactivo").length;
-      document.getElementById("empleadosActivos").innerText = activos;
+        });
+    } catch (e) {
+        console.error("Error al cargar datos:", e);
     }
-    if (document.getElementById("empleadosInactivos")) {
-      const inactivos = datos.filter((e) => e.estado === "Inactivo").length;
-      document.getElementById("empleadosInactivos").innerText = inactivos;
-    }
-  } catch (e) {
-    console.error("Error al cargar empleados:", e);
-  }
 }
 
-async function eliminarEmpleado(id) {
-  if (confirm("¿Estás seguro de que deseas eliminar a este empleado?")) {
-    try {
-      const res = await fetch(`${API_BASE}/empleados/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        alert("Empleado eliminado con éxito");
-        cargarEmpleados();
-      }
-    } catch (error) {
-      console.error("Error al eliminar:", error);
-    }
-  }
-}
-
-async function prepararEdicion(id, nombre, depto, rol) {
+async function prepararEdicion(id, nombre, depto, rol, estado) {
   idEditando = id;
 
-  // Solo intenta llenar si el select existe en el HTML actual
+  // Llenar los campos del formulario
+  if (document.getElementById("nombre")) document.getElementById("nombre").value = nombre;
+  if (document.getElementById("rol")) document.getElementById("rol").value = rol;
+  
+  // Seleccionar el estado en el dropdown del modal
+  const selectEstado = document.getElementById("estadoEmpleado");
+  if (selectEstado) selectEstado.value = estado;
+
+  // Actualizar select de departamentos (asegurando que el actual esté disponible)
+  await actualizarSelectDepartamentos();
   const selectDep = document.getElementById("departamento");
-  if (selectDep) {
-    await actualizarSelectDepartamentos();
-    selectDep.value = depto;
-  }
+  if (selectDep) selectDep.value = depto;
 
-  if (document.getElementById("nombre"))
-    document.getElementById("nombre").value = nombre;
-  if (document.getElementById("rol"))
-    document.getElementById("rol").value = rol;
-
+  // Mostrar modal y cambiar texto del botón
   const modal = document.getElementById("modalEmpleado");
-  if (modal) modal.style.display = "flex";
+  if (modal) {
+      document.getElementById("guardarEmpleado").innerText = "Actualizar Empleado";
+      modal.style.display = "flex";
+  }
 }
 
-const btnGuardar = document.getElementById("guardarEmpleado");
-if (btnGuardar) {
-  btnGuardar.onclick = async () => {
+
+const btnGuardarEmp = document.getElementById("guardarEmpleado");
+if (btnGuardarEmp) {
+  btnGuardarEmp.onclick = async () => {
     const nombre = document.getElementById("nombre").value.trim();
     const departamento = document.getElementById("departamento").value;
     const rol = document.getElementById("rol").value.trim();
+    const estado = document.getElementById("estadoEmpleado") ? document.getElementById("estadoEmpleado").value : "Activo";
 
-    if (!nombre || !departamento || !rol)
-      return alert("Por favor llena todos los campos");
+    if (!nombre || !departamento || !rol) return alert("Faltan campos obligatorios");
 
-    // VALIDACIÓN: Evitar nombres duplicados
-    const esDuplicado = await validarDuplicado("empleados", "nombre", nombre, idEditando);
-    if (esDuplicado) return alert("Ya existe un empleado con ese nombre.");
-
-    const datosEmp = { nombre, departamento, rol };
+    const datosEmp = { nombre, departamento, rol, estado };
     let url = `${API_BASE}/empleados`;
     let metodo = idEditando ? "PUT" : "POST";
     if (idEditando) url += `/${idEditando}`;
@@ -179,18 +187,16 @@ if (btnGuardar) {
       });
 
       if (res.ok) {
-        alert(idEditando ? "Empleado actualizado" : "Empleado guardado");
         idEditando = null;
-        const modal = document.getElementById("modalEmpleado");
-        if (modal) modal.style.display = "none";
+        document.getElementById("modalEmpleado").style.display = "none";
         cargarEmpleados();
+        alert("Datos guardados correctamente");
       }
     } catch (error) {
-      alert("Error en la operación");
+      alert("Error al conectar con el servidor");
     }
   };
 }
-
 // ==========================================
 // 3. MÓDULO: DEPARTAMENTOS
 // ==========================================
