@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   if (document.getElementById("totalEmpleados") || document.querySelector(".Dashboard")) {
     cargarMetricasDashboard();
   }
+
+  if (document.getElementById("formEvaluacion")) {
+    inicializarModuloSeleccion();
+  }
+  
 });
 
 /** * FUNCIÓN DE VALIDACIÓN (Añadida para robustez)
@@ -712,6 +717,137 @@ async function prepararNuevaNomina() {
         console.error("Error cargando los datos para la nómina:", error);
     }
 }
+
+// ==========================================
+// 6. MÓDULO: SELECCIÓN & CAPACITACIÓN IA
+// ==========================================
+
+function inicializarModuloSeleccion() {
+  const form = document.getElementById("formEvaluacion");
+  if (!form) return;
+
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const nombre = document.getElementById("nombreCandidato").value.trim();
+    const puesto = document.getElementById("puestoObjetivo").value;
+    const experiencia = document.getElementById("experiencia").value;
+    const habilidades = document.getElementById("habilidades").value.trim();
+
+    if (!nombre || !puesto) {
+      return alert("Complete el nombre y puesto del candidato.");
+    }
+
+    try {
+      const res = await fetch(`${API_BASE}/seleccion/evaluar`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, puesto, experiencia, habilidades })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        mostrarResultadoSeleccion(data);
+      } else {
+        alert(data.error || "Error al evaluar candidato");
+      }
+    } catch (e) {
+      console.error("Error al evaluar:", e);
+      alert("Error de conexión al procesar la evaluación.");
+    }
+  };
+}
+
+function mostrarResultadoSeleccion(data) {
+  const contenedor = document.getElementById("resultadoEvaluacion");
+  const badgeMatch = document.getElementById("badgeMatch");
+  const dictamenTexto = document.getElementById("dictamenTexto");
+  const listaRutas = document.getElementById("listaRutas");
+
+  if (!contenedor) return;
+
+  contenedor.classList.remove("hidden");
+  badgeMatch.innerText = `${data.estado} (${data.match}%)`;
+
+  if (data.match >= 80) {
+    badgeMatch.className = "px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700";
+  } else if (data.match >= 60) {
+    badgeMatch.className = "px-3 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-700";
+  } else {
+    badgeMatch.className = "px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-700";
+  }
+
+  dictamenTexto.innerText = data.dictamen;
+
+  listaRutas.innerHTML = "";
+  if (data.rutasSugeridas) {
+    data.rutasSugeridas.forEach((ruta) => {
+      listaRutas.innerHTML += `<li>${ruta}</li>`;
+    });
+  }
+}
+
+// Modal Chatbot y Envío
+function abrirModalChatbot() {
+  const modal = document.getElementById("modalChatbot");
+  if (modal) {
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  }
+}
+
+function cerrarModalChatbot() {
+  const modal = document.getElementById("modalChatbot");
+  if (modal) {
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  }
+}
+
+async function enviarMensajeChat() {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+
+  const mensaje = input.value.trim();
+  if (!mensaje) return;
+
+  const chatMessages = document.getElementById("chatMessages");
+
+  // Mensaje Usuario
+  chatMessages.innerHTML += `
+    <div class="flex justify-end">
+      <div class="bg-indigo-600 text-white p-3 rounded-xl max-w-[85%]">${mensaje}</div>
+    </div>`;
+
+  input.value = "";
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+
+  try {
+    const res = await fetch(`${API_BASE}/seleccion/chatbot`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mensaje })
+    });
+
+    const data = await res.json();
+
+    // Mensaje Bot
+    chatMessages.innerHTML += `
+      <div class="flex justify-start">
+        <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-700 max-w-[85%] shadow-sm">${data.respuesta}</div>
+      </div>`;
+
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } catch (e) {
+    console.error("Error chatbot:", e);
+  }
+}
+
+// Exponer funciones al objeto Window (al igual que las otras funciones de tu app.js)
+window.abrirModalChatbot = abrirModalChatbot;
+window.cerrarModalChatbot = cerrarModalChatbot;
+window.enviarMensajeChat = enviarMensajeChat;
 
 // borarr nomina (mantenemos las dos versiones que tenías por si acaso)
 async function eliminarNomina(id) {

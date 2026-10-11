@@ -18,6 +18,7 @@ mongoose.connect(process.env.MONGO_URI)
 app.use('/api/empleados', require('./routes/empleado'));
 app.use('/api/departamentos', require('./routes/departamento'));
 app.use('/api/nomina', require('./routes/nomina'));
+app.use('/api/seleccion', require('./routes/seleccion'));
 app.get('/crear-datos-prueba', async (req, res) => {
     res.send("Datos creados");
 });

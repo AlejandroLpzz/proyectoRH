@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema RH - Selección y Capacitación</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilos.css">
+
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+  </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex">
+
+  <!-- Sidebar dinámico -->
+  <div id="sidebar-container" class="h-full"></div>
+
+  <main class="flex-1 flex flex-col overflow-hidden">
+
+    <!-- Header -->
+    <header class="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-8 z-10">
+      <div class="flex items-center gap-2">
+        <span class="text-slate-400 text-sm">Panel</span>
+        <span class="text-slate-300">/</span>
+        <span class="font-medium text-slate-600 text-sm">Selección y Capacitación</span>
+      </div>
+
+      <div id="userInfo" class="flex items-center gap-4">
+        <div class="text-right hidden sm:block">
+          <div class="text-sm font-bold text-slate-700" id="nombreUsuarioHeader">Administrador</div>
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Gestión de RH</div>
+        </div>
+        <div class="w-9 h-9 bg-slate-800 text-white rounded-full flex items-center justify-center font-bold text-sm">A</div>
+        <button onclick="cerrarSesion()" class="ml-2 p-2 text-slate-400 hover:text-red-600 transition-colors" title="Cerrar Sesión">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Contenido con Scroll -->
+    <div class="flex-1 overflow-y-auto p-8 space-y-8">
+      
+      <!-- Encabezado de la página -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Evaluación y Desarrollo de Personal</h1>
+          <p class="text-slate-500 text-sm mt-1">Análisis de perfiles profesionales mediante reglas de selección y diseño de rutas de formación.</p>
+        </div>
+        <button onclick="abrirModalChatbot()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-sm font-medium flex items-center gap-2 transition-all shadow-sm">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Asistente de Consultas RH
+        </button>
+      </div>
+
+      <!-- Tarjetas de Métricas -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Evaluaciones Realizadas</p>
+          <p class="text-3xl font-bold text-slate-900 mt-2">28</p>
+          <span class="text-xs text-emerald-600 font-medium">Sistema operativo</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Compatibilidad Promedio</p>
+          <p class="text-3xl font-bold text-slate-900 mt-2">82%</p>
+          <span class="text-xs text-indigo-600 font-medium">Criterios de puesto</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Rutas Asignadas</p>
+          <p class="text-3xl font-bold text-slate-900 mt-2">14</p>
+          <span class="text-xs text-purple-600 font-medium">Capacitación activa</span>
+        </div>
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Reglas de Negocio</p>
+          <p class="text-3xl font-bold text-slate-900 mt-2">35</p>
+          <span class="text-xs text-slate-400">Intérprete RH</span>
+        </div>
+      </div>
+
+      <!-- Formulario & Resultados -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Formulario Evaluador -->
+        <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <h3 class="text-lg font-bold text-slate-800 mb-1">Evaluación de Perfil Profesional</h3>
+          <p class="text-xs text-slate-400 mb-6">Valida la información del candidato o empleado contra las reglas de perfilamiento del área.</p>
+
+          <form id="formEvaluacion" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Candidato / Empleado</label>
+                <input type="text" id="nombreCandidato" placeholder="Ingrese nombre completo" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" required>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Puesto Objetivo</label>
+                <select id="puestoObjetivo" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" required>
+                  <option value="">Seleccionar posición...</option>
+                  <option value="desarrollador_frontend">Desarrollador Frontend</option>
+                  <option value="analista_datos">Analista de Datos</option>
+                  <option value="gerente_proyectos">Gerente de Proyectos</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Años de Experiencia</label>
+                <input type="number" id="experiencia" min="0" placeholder="Ej. 3" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" required>
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1 uppercase">Habilidades (separadas por coma)</label>
+                <input type="text" id="habilidades" placeholder="Ej. JavaScript, SQL, Liderazgo" class="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-indigo-500" required>
+              </div>
+            </div>
+
+            <button type="submit" class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl transition-colors text-sm mt-2 flex items-center justify-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Procesar Evaluación
+            </button>
+          </form>
+
+          <!-- Panel de Resultados -->
+          <div id="resultadoEvaluacion" class="hidden mt-6 p-5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h4 class="font-bold text-slate-800 text-sm">Dictamen Técnico del Sistema:</h4>
+              <span id="badgeMatch" class="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">Apto</span>
+            </div>
+            <p id="dictamenTexto" class="text-xs text-slate-600 leading-relaxed"></p>
+            <div class="bg-white p-4 rounded-lg border border-slate-200">
+              <span class="text-xs font-bold text-slate-700 uppercase block mb-2">Rutas de Capacitación Recomendadas</span>
+              <ul id="listaRutas" class="text-xs text-slate-600 space-y-1 list-disc pl-4"></ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Catálogo de Capacitación -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div>
+            <h3 class="font-bold text-slate-800 mb-1">Catálogo de Capacitaciones</h3>
+            <p class="text-xs text-slate-400 mb-4">Programas estructurados disponibles para asignación.</p>
+
+            <div class="space-y-3">
+              <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <h4 class="text-xs font-bold text-slate-800">Liderazgo y Gestión de Equipos</h4>
+                <p class="text-[10px] text-slate-500 mt-0.5">Habilidades Directivas • 15 horas</p>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <h4 class="text-xs font-bold text-slate-800">Análisis de Datos y Estadísticas</h4>
+                <p class="text-[10px] text-slate-500 mt-0.5">Formación Técnica • 25 horas</p>
+              </div>
+              <div class="p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <h4 class="text-xs font-bold text-slate-800">Desarrollo Web Avanzado</h4>
+                <p class="text-[10px] text-slate-500 mt-0.5">Formación Técnica • 20 horas</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Modal Asistente Chatbot -->
+  <div id="modalChatbot" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 w-full max-w-md overflow-hidden flex flex-col h-[520px]">
+      
+      <!-- Header Modal -->
+      <div class="bg-slate-900 p-4 text-white flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs uppercase tracking-wider">Asistente de Recursos Humanos</h3>
+            <p class="text-[10px] text-slate-400">Consultas de selección y capacitación</p>
+          </div>
+        </div>
+        <button onclick="cerrarModalChatbot()" class="text-slate-400 hover:text-white transition-colors text-xl font-bold line-none">&times;</button>
+      </div>
+
+      <!-- Mensajes -->
+      <div id="chatMessages" class="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50 text-xs">
+        <div class="bg-white p-3.5 rounded-xl border border-slate-200 text-slate-700 max-w-[85%] shadow-sm leading-relaxed">
+          Bienvenido al asistente de consultas de RH. Puede realizar preguntas sobre criterios de selección, reglas de evaluación y catálogo de capacitación.
+        </div>
+      </div>
+
+      <!-- Formulario de entrada del Chat -->
+      <div class="p-3 bg-white border-t border-slate-200 flex gap-2">
+        <input type="text" id="chatInput" placeholder="Escriba su consulta..." class="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-indigo-500 text-slate-800" onkeypress="if(event.key === 'Enter') enviarMensajeChat()">
+        <button onclick="enviarMensajeChat()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-xl text-xs font-semibold transition-colors">
+          Enviar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
