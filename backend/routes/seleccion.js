@@ -3,10 +3,12 @@ const router = express.Router();
 
 const { 
   evaluarCandidato, 
-  asistenteChatbot 
+  asistenteChatbot,
+  obtenerEvaluaciones 
 } = require('../controllers/seleccionController');
 
-// Definición de rutas
+// Rutas del módulo de Selección y Capacitación IA
+router.get('/', obtenerEvaluaciones);
 router.post('/evaluar', evaluarCandidato);
 router.post('/chatbot', asistenteChatbot);
 

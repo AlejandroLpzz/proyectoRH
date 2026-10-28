@@ -1,7 +1,7 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
 
 const app = express();
 
@@ -19,6 +19,7 @@ app.use('/api/empleados', require('./routes/empleado'));
 app.use('/api/departamentos', require('./routes/departamento'));
 app.use('/api/nomina', require('./routes/nomina'));
 app.use('/api/seleccion', require('./routes/seleccion'));
+
 app.get('/crear-datos-prueba', async (req, res) => {
     res.send("Datos creados");
 });
