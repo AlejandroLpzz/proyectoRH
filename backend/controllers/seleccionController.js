@@ -1,112 +1,167 @@
-const Evaluacion = require('../models/Evaluacion');
-const OpenAI = require('openai');
+const Seleccion = require('../models/Seleccion');
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY
-});
+// Reglas predefinidas del Sistema Experto para Selección de Recursos Humanos
+const REGLAS_PUESTOS = {
+  desarrollador_frontend: {
+    expMinima: 2,
+    habilidadesRequeridas: ['javascript', 'css', 'git', 'react', 'tailwind'],
+    cursoRecomendado: 'Optimización Avanzada de Frontend & Performance'
+  },
+  analista_datos: {
+    expMinima: 3,
+    habilidadesRequeridas: ['sql', 'python', 'power bi', 'excel'],
+    cursoRecomendado: 'Modelado Estadístico y Python para Análisis de Datos'
+  },
+  gerente_proyectos: {
+    expMinima: 4,
+    habilidadesRequeridas: ['scrum', 'liderazgo', 'jira', 'gestion de riesgos'],
+    cursoRecomendado: 'Liderazgo Estratégico y Metodologías Ágiles'
+  }
+};
 
-// 1. Evaluar Candidato mediante Inteligencia Artificial y guardar en BD
+// Evaluador del Sistema Experto
 const evaluarCandidato = async (req, res) => {
   try {
     const { nombre, puesto, experiencia, habilidades } = req.body;
 
     if (!nombre || !puesto) {
-      return res.status(400).json({ error: 'El nombre y el puesto son obligatorios.' });
+      return res.status(400).json({ error: 'El nombre y puesto son obligatorios.' });
     }
 
+    const regla = REGLAS_PUESTOS[puesto];
+    const expInt = parseInt(experiencia) || 0;
+    
+    // Convertir habilidades enviadas a un arreglo en minúsculas
     const listaHabilidades = Array.isArray(habilidades) 
-      ? habilidades.join(', ') 
-      : habilidades;
+      ? habilidades.map(h => h.trim().toLowerCase()) 
+      : (habilidades || '').toLowerCase().split(',').map(h => h.trim());
 
-    const prompt = `Actúa como un experto en Selección de Recursos Humanos. 
-    Evalúa al siguiente candidato:
-    - Nombre: ${nombre}
-    - Puesto Objetivo: ${puesto}
-    - Años de Experiencia: ${experiencia}
-    - Habilidades: ${listaHabilidades}
+    if (!regla) {
+      // Caso puesto sin reglas estrictas
+      const matchSinRegla = 70;
+      const estadoSinRegla = 'Apto con Observaciones';
+      const rutasSinRegla = ['Inducción General a la Empresa', 'Cultura Organizacional y Seguridad'];
 
-    Responde ÚNICAMENTE en formato JSON estricto con esta estructura:
-    {
-      "match": (número entre 0 y 100),
-      "estado": ("Altamente Apto", "Apto para Capacitación" o "No Apto"),
-      "dictamen": "Explicación breve de 2 oraciones sobre el perfil y las brechas identificadas.",
-      "rutasSugeridas": ["Nombre de Curso 1", "Nombre de Curso 2"]
-    }`;
+      // Guardar en MongoDB
+      const nuevaEval = new Seleccion({
+        candidato: nombre,
+        puesto,
+        experiencia: expInt,
+        habilidades: listaHabilidades,
+        match: matchSinRegla,
+        estado: estadoSinRegla,
+        brechas: [],
+        rutasSugeridas: rutasSinRegla
+      });
+      await nuevaEval.save();
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ role: "user", content: prompt }],
-      response_format: { type: "json_object" }
+      return res.json({
+        match: matchSinRegla,
+        estado: estadoSinRegla,
+        dictamen: `Evaluación completada para ${nombre}. El puesto seleccionado no cuenta con reglas estrictas predefinidas.`,
+        rutasSugeridas: rutasSinRegla
+      });
+    }
+
+    // Puntuación por experiencia (50%)
+    let puntosExp = expInt >= regla.expMinima ? 50 : Math.round((expInt / regla.expMinima) * 50);
+
+    // Puntuación por habilidades (50%) y detección de brechas
+    const coincidentes = regla.habilidadesRequeridas.filter(h => listaHabilidades.includes(h));
+    const brechas = regla.habilidadesRequeridas.filter(h => !listaHabilidades.includes(h));
+    let puntosHab = Math.round((coincidentes.length / regla.habilidadesRequeridas.length) * 50);
+
+    const matchTotal = puntosExp + puntosHab;
+    let estado = 'No Apto';
+    if (matchTotal >= 80) estado = 'Altamente Apto';
+    else if (matchTotal >= 60) estado = 'Apto para Capacitación';
+
+    const rutasSugeridas = brechas.length > 0 
+      ? [`Ruta de Nivelación: ${brechas.join(', ')}`, regla.cursoRecomendado]
+      : ['Plan de Desarrollo en Liderazgo Técnico'];
+
+    // --- GUARDAR EN MONGOBD ---
+    const nuevaEvaluacion = new Seleccion({
+      candidato: nombre,
+      puesto,
+      experiencia: expInt,
+      habilidades: listaHabilidades,
+      match: matchTotal,
+      estado,
+      brechas,
+      rutasSugeridas
+    });
+    await nuevaEvaluacion.save();
+
+    return res.json({
+      match: matchTotal,
+      estado,
+      dictamen: `El candidato ${nombre} posee ${expInt} año(s) de experiencia y un porcentaje de ajuste del ${matchTotal}%. Se detectaron ${brechas.length} brechas de conocimiento.`,
+      brechas,
+      rutasSugeridas
     });
 
-    const resultadoIA = JSON.parse(completion.choices[0].message.content);
-
-    // Guardado en la base de datos
-    try {
-      const nuevaEvaluacion = new Evaluacion({
-        nombreCandidato: nombre,
-        puestoObjetivo: puesto,
-        experiencia: Number(experiencia),
-        habilidades: Array.isArray(habilidades) ? habilidades : habilidades.split(',').map(h => h.trim()),
-        match: resultadoIA.match,
-        estado: resultadoIA.estado,
-        dictamen: resultadoIA.dictamen,
-        rutasSugeridas: resultadoIA.rutasSugeridas
-      });
-      await nuevaEvaluacion.save();
-    } catch (dbErr) {
-      console.warn('Evaluación generada correctamente (sin guardar en BD):', dbErr.message);
-    }
-
-    return res.json(resultadoIA);
-
   } catch (error) {
-    console.error('Error al evaluar candidato con IA:', error);
-    return res.status(500).json({ error: 'Error interno al procesar la evaluación.' });
+    console.error('Error en el controlador de selección:', error);
+    return res.status(500).json({ error: 'Error interno al evaluar candidato.' });
   }
 };
 
-// 2. Chatbot de Consultas de RH con IA
-const asistenteChatbot = async (req, res) => {
+// Asistente Chatbot
+const asistenteChatbot = (req, res) => {
   try {
     const { mensaje } = req.body;
+    const msg = (mensaje || '').toLowerCase();
 
-    if (!mensaje) {
-      return res.status(400).json({ error: 'El mensaje es obligatorio.' });
+    let respuesta = "Entendido. Puedo resolver consultas sobre los criterios de selección de personal, reglas de evaluación y catálogo de capacitaciones.";
+
+    if (msg.includes('requisito') || msg.includes('experiencia') || msg.includes('puesto')) {
+      respuesta = "Nuestras reglas de RH requieren entre 2 y 4 años de experiencia según el puesto (Frontend, Analista de Datos, Gerente) y habilidades técnicas validadas por el sistema experto.";
+    } else if (msg.includes('capacitacion') || msg.includes('curso') || msg.includes('ruta')) {
+      respuesta = "Las rutas de aprendizaje se asignan automáticamente según las brechas detectadas en la evaluación del perfil.";
+    } else if (msg.includes('hola') || msg.includes('buenas')) {
+      respuesta = "¡Hola! Soy el asistente virtual de RH. ¿En qué puedo ayudarte hoy respecto a selección o capacitación?";
     }
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        { 
-          role: "system", 
-          content: "Eres un asistente virtual formal de Recursos Humanos. Responde dudas sobre perfiles de trabajo, criterios de selección, evaluación de desempeño y planes de capacitación corporativos en máximo 3 oraciones." 
-        },
-        { role: "user", content: mensaje }
-      ]
-    });
-
-    const respuesta = completion.choices[0].message.content;
     return res.json({ respuesta });
-
   } catch (error) {
-    console.error('Error en Chatbot IA:', error);
-    return res.status(500).json({ error: 'No se pudo procesar la consulta en el asistente.' });
+    return res.status(500).json({ error: 'Error en respuesta de chatbot.' });
   }
 };
 
-// 3. Obtener Historial de Evaluaciones
-const obtenerEvaluaciones = async (req, res) => {
+// Obtener métricas calculadas para las tarjetas superiores
+const obtenerMetricas = async (req, res) => {
   try {
-    const evaluaciones = await Evaluacion.find().sort({ fecha: -1 });
-    res.json(evaluaciones);
+    const totalEvaluaciones = await Seleccion.countDocuments();
+
+    // Promedio de match/compatibilidad
+    const resPromedio = await Seleccion.aggregate([
+      { $group: { _id: null, promedio: { $avg: "$match" } } }
+    ]);
+    const compatibilidadPromedio = resPromedio.length > 0 
+      ? Math.round(resPromedio[0].promedio) 
+      : 0;
+
+    // Total de rutas sugeridas/asignadas acumuladas
+    const resRutas = await Seleccion.aggregate([
+      { $unwind: "$rutasSugeridas" },
+      { $count: "totalRutas" }
+    ]);
+    const rutasAsignadas = resRutas.length > 0 ? resRutas[0].totalRutas : 0;
+
+    return res.json({
+      totalEvaluaciones,
+      compatibilidadPromedio,
+      rutasAsignadas
+    });
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener el historial de evaluaciones.' });
+    console.error('Error al calcular métricas:', error);
+    return res.status(500).json({ error: 'Error al obtener métricas.' });
   }
 };
 
 module.exports = {
   evaluarCandidato,
   asistenteChatbot,
-  obtenerEvaluaciones
+  obtenerMetricas
 };

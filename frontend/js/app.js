@@ -722,7 +722,31 @@ async function prepararNuevaNomina() {
 // 6. MÓDULO: SELECCIÓN & CAPACITACIÓN IA
 // ==========================================
 
+// 1. Función para consultar las métricas a MongoDB y pintar los números en pantalla
+async function cargarMetricas() {
+  try {
+    const res = await fetch(`${API_BASE}/seleccion/metricas`);
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    const elEval = document.getElementById("m-evaluaciones");
+    const elComp = document.getElementById("m-compatibilidad");
+    const elRut = document.getElementById("m-rutas");
+
+    if (elEval) elEval.innerText = data.totalEvaluaciones;
+    if (elComp) elComp.innerText = `${data.compatibilidadPromedio}%`;
+    if (elRut) elRut.innerText = data.rutasAsignadas;
+  } catch (e) {
+    console.error("Error al cargar métricas de Selección:", e);
+  }
+}
+
+// 2. Inicialización del módulo y manejo del formulario
 function inicializarModuloSeleccion() {
+  // Cargar las tarjetas superiores apenas abra el módulo
+  cargarMetricas();
+
   const form = document.getElementById("formEvaluacion");
   if (!form) return;
 
@@ -749,6 +773,8 @@ function inicializarModuloSeleccion() {
 
       if (res.ok) {
         mostrarResultadoSeleccion(data);
+        // Actualizar automáticamente los recuadros con el nuevo registro
+        await cargarMetricas();
       } else {
         alert(data.error || "Error al evaluar candidato");
       }
@@ -759,6 +785,7 @@ function inicializarModuloSeleccion() {
   };
 }
 
+// 3. Renderizar resultados en el recuadro inferior
 function mostrarResultadoSeleccion(data) {
   const contenedor = document.getElementById("resultadoEvaluacion");
   const badgeMatch = document.getElementById("badgeMatch");
@@ -788,7 +815,7 @@ function mostrarResultadoSeleccion(data) {
   }
 }
 
-// Modal Chatbot y Envío
+// 4. Modal Chatbot y Asistente
 function abrirModalChatbot() {
   const modal = document.getElementById("modalChatbot");
   if (modal) {
@@ -844,43 +871,10 @@ async function enviarMensajeChat() {
   }
 }
 
-// Exponer funciones al objeto Window (al igual que las otras funciones de tu app.js)
+// Exponer funciones al objeto Window
 window.abrirModalChatbot = abrirModalChatbot;
 window.cerrarModalChatbot = cerrarModalChatbot;
 window.enviarMensajeChat = enviarMensajeChat;
-
-// borarr nomina (mantenemos las dos versiones que tenías por si acaso)
-async function eliminarNomina(id) {
-    console.log("El botón mandó a borrar el ID:", id);
-    if (!confirm("¿Estás seguro de que deseas eliminar este registro de pago?")) return;
-
-    try {
-        const res = await fetch(`${API_BASE}/nomina/${id}`, {
-            method: "DELETE"
-        });
-
-        if (res.ok) {
-            cargarNomina(); 
-        } else {
-            alert("Error al intentar eliminar el registro.");
-        }
-    } catch (error) {
-        console.error("Error en la petición de borrado:", error);
-    }
-}
-
-window.eliminarNomina = eliminarNomina;
-window.prepararNuevaNomina = prepararNuevaNomina;
-
-//cerrar sesion
-function cerrarSesion() {
-    // borrar datos de inicio de sesion
-    localStorage.clear();
-    sessionStorage.clear();
-
-    // volver al login
-    window.location.href = "login.html"; 
-}
 
 // cerrar sesion
 window.cerrarSesion = cerrarSesion;
