@@ -636,7 +636,6 @@ if (inputBuscar) {
 }
 
 // Exponer funciones necesarias al objeto window
-window.eliminarEmpleado = eliminarEmpleado;
 window.prepararEdicion = prepararEdicion;
 window.eliminarDepartamento = eliminarDepartamento;
 window.prepararEdicionDepto = prepararEdicionDepto;
@@ -832,42 +831,77 @@ function cerrarModalChatbot() {
   }
 }
 
+let historialChat = [];
+
+function escaparHTML(texto) {
+  const div = document.createElement("div");
+  div.textContent = texto;
+  return div.innerHTML;
+}
+
+function agregarBurbujaChat(texto, esUsuario, id = null) {
+  const chatMessages = document.getElementById("chatMessages");
+  const fila = document.createElement("div");
+  fila.className = esUsuario ? "flex justify-end" : "flex justify-start";
+  if (id) fila.id = id;
+
+  const burbuja = document.createElement("div");
+  burbuja.className = esUsuario
+    ? "bg-indigo-600 text-white p-3 rounded-xl max-w-[85%] whitespace-pre-wrap"
+    : "bg-white p-3 rounded-xl border border-slate-200 text-slate-700 max-w-[85%] shadow-sm whitespace-pre-wrap";
+  burbuja.textContent = texto;
+
+  fila.appendChild(burbuja);
+  chatMessages.appendChild(fila);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return fila;
+}
+
 async function enviarMensajeChat() {
   const input = document.getElementById("chatInput");
+  const boton = document.querySelector('#modalChatbot button[onclick="enviarMensajeChat()"]');
   if (!input) return;
 
   const mensaje = input.value.trim();
   if (!mensaje) return;
 
-  const chatMessages = document.getElementById("chatMessages");
-
-  // Mensaje Usuario
-  chatMessages.innerHTML += `
-    <div class="flex justify-end">
-      <div class="bg-indigo-600 text-white p-3 rounded-xl max-w-[85%]">${mensaje}</div>
-    </div>`;
-
   input.value = "";
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  input.disabled = true;
+  if (boton) boton.disabled = true;
+
+  agregarBurbujaChat(mensaje, true);
+  const idCargando = "chat-cargando-" + Date.now();
+  agregarBurbujaChat("Escribiendo...", false, idCargando);
 
   try {
     const res = await fetch(`${API_BASE}/seleccion/chatbot`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mensaje })
+      body: JSON.stringify({ mensaje, historial: historialChat })
     });
 
     const data = await res.json();
+    document.getElementById(idCargando)?.remove();
 
-    // Mensaje Bot
-    chatMessages.innerHTML += `
-      <div class="flex justify-start">
-        <div class="bg-white p-3 rounded-xl border border-slate-200 text-slate-700 max-w-[85%] shadow-sm">${data.respuesta}</div>
-      </div>`;
+    if (!res.ok) {
+      agregarBurbujaChat(data.error || "No pude responder en este momento.", false);
+      return;
+    }
 
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    agregarBurbujaChat(data.respuesta, false);
+
+    // Guardamos el turno para dar contexto a las siguientes preguntas
+    historialChat.push({ role: "user", content: mensaje });
+    historialChat.push({ role: "assistant", content: data.respuesta });
+    historialChat = historialChat.slice(-10);
   } catch (e) {
+    document.getElementById(idCargando)?.remove();
+    agregarBurbujaChat("Error de conexión con el servidor. Verifica que el backend esté activo.", false);
     console.error("Error chatbot:", e);
+  } finally {
+    input.disabled = false;
+    if (boton) boton.disabled = false;
+    input.focus();
   }
 }
 
@@ -877,4 +911,4 @@ window.cerrarModalChatbot = cerrarModalChatbot;
 window.enviarMensajeChat = enviarMensajeChat;
 
 // cerrar sesion
-window.cerrarSesion = cerrarSesion;
+if (typeof cerrarSesion === "function") window.cerrarSesion = cerrarSesion;
